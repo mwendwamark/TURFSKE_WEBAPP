@@ -1,0 +1,196 @@
+/* ─────────────────────────────────────────────
+   Button — TurfsKE
+   Layout & mechanics from bc-cta pattern.
+   Colors mapped to TurfsKE design tokens.
+───────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  height: 40px;
+  padding: 0 10px 0 28px;
+  font-family: var(--font_family);
+  font-weight: var(--fw_normal);
+  font-size: var(--fs_small);
+  line-height: 1;
+  letter-spacing: -0.005em;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  transition:
+    background-color 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    color 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.btn:active {
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--secondary_green);
+  outline-offset: 3px;
+}
+
+/* ── Label ── */
+.label {
+  display: inline-block;
+  padding-bottom: 1px;
+}
+
+/* ── Arrow circle ── */
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  transition:
+    background-color 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    color 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.arrow svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: primary  (solid green)
+───────────────────────────────────────────── */
+.primary {
+  background-color: var(--secondary_green);
+  color: var(--white);
+  border-color: var(--secondary_green);
+}
+
+.primary .arrow {
+  background-color: var(--white);
+  color: var(--secondary_green);
+}
+
+.primary:hover {
+  background-color: var(--white);
+  color: var(--primary_green);
+  border-color: var(--primary_green);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -14px rgba(65, 131, 75, 0.6);
+}
+
+.primary:hover .arrow {
+  background-color: var(--primary_green);
+  color: var(--white);
+  transform: translateX(4px);
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: secondary  (light grey)
+───────────────────────────────────────────── */
+.secondary {
+  background-color: var(--light_grey);
+  color: var(--black);
+  border-color: var(--light_grey);
+}
+
+.secondary .arrow {
+  background-color: var(--black);
+  color: var(--light_grey);
+}
+
+.secondary:hover {
+  background-color: var(--black);
+  color: var(--light_grey);
+  border-color: var(--black);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -14px rgba(30, 30, 30, 0.45);
+}
+
+.secondary:hover .arrow {
+  background-color: var(--light_grey);
+  color: var(--black);
+  transform: translateX(4px);
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: white  (white bg — use on dark surfaces)
+───────────────────────────────────────────── */
+.white {
+  background-color: var(--white);
+  color: var(--primary_green);
+  border-color: var(--primary_green);
+}
+
+.white .arrow {
+  background-color: var(--secondary_green);
+  color: var(--white);
+}
+
+.white:hover {
+  background-color: var(--secondary_green);
+  color: var(--white);
+  border-color: var(--secondary_green);
+}
+
+.white:hover .arrow {
+  background-color: var(--white);
+  color: var(--primary_green);
+  transform: translateX(4px);
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: glass  (frosted — use over images / dark bg)
+───────────────────────────────────────────── */
+.glass {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+  border-color: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass .arrow {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: var(--white);
+}
+
+.glass:hover {
+  background-color: rgba(255, 255, 255, 0.22);
+  color: var(--white);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.3);
+}
+
+.glass:hover .arrow {
+  background-color: rgba(255, 255, 255, 0.4);
+  color: var(--white);
+  transform: translateX(4px);
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: outline  (transparent, green border)
+   No arrow by default.
+───────────────────────────────────────────── */
+.outline {
+  background-color: transparent;
+  color: var(--primary_green);
+  border-color: var(--primary_green);
+  padding: 0 28px;
+}
+
+.outline:hover {
+  background-color: var(--primary_green);
+  color: var(--white);
+  border-color: var(--primary_green);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -14px rgba(65, 131, 75, 0.5);
+}

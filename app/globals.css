@@ -1,26 +1,100 @@
-@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&display=swap");
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --white: #ffffff;
+  --off-white: #fafaf9;
+  --light_grey: #eeeeee;
+  --grey: #555555;
+  --black: #1e1e1e;
+  --primary_green: #41834b;
+  --secondary_green: #43a047;
+
+  /* FONTS */
+  /* FONT_FAMILY */
+  --font_family: "Geist", sans-serif;
+
+  /* FONT_SIZES */
+  --fs_hero: 6rem;
+  --fs_section_title: 4.5rem;
+  --fs_sub_section_title: 2.8rem;
+  --fs_normal: 1rem;
+  --fs_small: 0.875rem;
+
+  /* FONT WEIGHTS */
+  --fw_thick: 700;
+  --fw_bold: 600;
+  --fw_medium: 500;
+  --fw_normal: 400;
+
+  /* TRANSITIONS */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font_family);
+  font-size: var(--fs_normal);
+  color: var(--black);
+  background-color: var(--white);
+}
+
+a {
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+ul,
+ol,
+li {
+  list-style: none;
+}
+
+input,
+textarea {
+  font-family: var(--font_family);
+  border: none;
+  outline: none;
+}
+
+button {
+  font-family: var(--font_family);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.container {
+  max-width: 90%;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.small_container {
+  max-width: 80%;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.section {
+  padding: 12rem 0;
+}
+
+.section_small {
+  padding: 6rem 0;
+}
+
+.max_width_50 {
+  max-width: 50%;
 }
