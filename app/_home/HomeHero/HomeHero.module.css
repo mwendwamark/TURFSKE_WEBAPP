@@ -1,0 +1,230 @@
+.hero {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* ── Background ── */
+.hero_bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero_image {
+  object-fit: cover;
+  object-position: center top;
+}
+
+.hero_overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.55) 50%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
+  z-index: 1;
+}
+
+/* ── Layout ── */
+.hero_inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 90%;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 5rem;
+  padding-top: 9rem;
+  gap: 2rem;
+}
+
+/* ── Brand text (left) ── */
+.hero_brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 0.88;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.brand_solid {
+  font-size: clamp(5rem, 14vw, 13rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--white);
+  text-transform: uppercase;
+  display: block;
+}
+
+.brand_outline {
+  font-size: clamp(5rem, 14vw, 13rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  display: block;
+  color: transparent;
+  -webkit-text-stroke: 2.5px rgba(255, 255, 255, 0.75);
+  /* slight rightward offset so it overlaps like the reference */
+  margin-left: 0.08em;
+  margin-top: -0.04em;
+}
+
+/* ── Right side content ── */
+.hero_content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 2.4rem;
+  max-width: 380px;
+  padding-bottom: 0.5rem;
+}
+
+/* Description block */
+.hero_description {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.description_line {
+  display: block;
+  width: 36px;
+  height: 2px;
+  background-color: var(--secondary_green);
+}
+
+.description_text {
+  font-size: 0.95rem;
+  font-weight: var(--fw_normal);
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.75;
+  max-width: 32ch;
+}
+
+/* CTA buttons */
+.hero_actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  font-size: 0.8125rem;
+  font-weight: var(--fw_medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn_primary {
+  background-color: var(--secondary_green);
+  color: var(--white);
+  border: 1.5px solid var(--secondary_green);
+}
+
+.btn_primary:hover {
+  background-color: var(--primary_green);
+  border-color: var(--primary_green);
+  color: var(--white);
+}
+
+.btn_outline {
+  background-color: transparent;
+  color: var(--white);
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+}
+
+.btn_outline:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--white);
+}
+
+/* Social icons — horizontal */
+.hero_socials {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.social_icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  color: var(--white);
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.social_icon:hover {
+  border-color: var(--secondary_green);
+  background-color: rgba(67, 160, 71, 0.18);
+  color: var(--white);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .hero_inner {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding-bottom: 4rem;
+    gap: 1.5rem;
+  }
+
+  .hero_content {
+    max-width: 100%;
+    gap: 1.75rem;
+  }
+
+  .description_text {
+    max-width: 48ch;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero_inner {
+    padding-bottom: 3rem;
+    padding-top: 8rem;
+  }
+
+  .brand_outline {
+    -webkit-text-stroke-width: 1.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero_actions {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
