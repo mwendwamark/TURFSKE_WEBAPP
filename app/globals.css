@@ -1,8 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&display=swap");
-
 :root {
   --white: #ffffff;
-  --off-white: #fafaf9;
+  --off-white: #ededed;
   --light_grey: #eeeeee;
   --grey: #555555;
   --black: #1e1e1e;
@@ -11,11 +9,11 @@
 
   /* FONTS */
   /* FONT_FAMILY */
-  --font_family: "Geist", sans-serif;
+  --font_family: var(--font-family);
 
   /* FONT_SIZES */
   --fs_hero: 6rem;
-  --fs_section_title: 4.5rem;
+  --fs_section_title: 4rem;
   --fs_sub_section_title: 2.8rem;
   --fs_normal: 1rem;
   --fs_small: 0.875rem;
@@ -96,5 +94,85 @@ button {
 }
 
 .max_width_50 {
-  max-width: 50%;
+  max-width: 45%;
+}
+
+.max_width_80 {
+  max-width: 80%;
+}
+
+.section_header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.section_title {
+  font-size: clamp(1.9rem, 3.5vw + 0.5rem, 3.2rem);
+  line-height: 1;
+  letter-spacing: -0.3px;
+  font-weight: var(--fw_meduim);
+}
+
+.section_title.green {
+  color: var(--primary_green);
+}
+
+.section_title.white {
+  color: var(--white);
+}
+
+.sub_section_title {
+  font-size: clamp(1.4rem, 2vw + 0.25rem, 1.8rem);
+  font-weight: var(--fw_medium);
+}
+
+@media (min-width: 2000px) {
+  .container {
+    max-width: 2000px;
+  }
+  .small_container {
+    max-width: 1400px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .small_container {
+    max-width: 90%;
+  }
+
+  .section {
+    padding: 8rem 0;
+  }
+
+  .section_small {
+    padding: 4rem 0;
+  }
+
+  .section_header {
+    margin-bottom: 2.5rem;
+  }
+
+  .max_width_80 {
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    max-width: 95%;
+  }
+
+  .section {
+    padding: 6rem 0;
+  }
+
+  .section_small {
+    padding: 3.5rem 0;
+  }
+
+  .max_width_80 {
+    max-width: 100%;
+  }
 }

@@ -46,7 +46,7 @@ export function HomeHero() {
       <div className={styles.hero_overlay} />
 
       {/* Three-column layout: brand col | spacer | content col */}
-      <div className={styles.hero_inner}>
+      <div className={`${styles.hero_inner} container`}>
         {/* LEFT — vertical brand text running bottom-to-top */}
         <div className={styles.hero_brand_col} aria-label="TURFSKE">
           <div className={styles.hero_brand}>
@@ -88,7 +88,7 @@ export function HomeHero() {
               Explore Turfs
             </Button>
             <Button size="lg" variant="secondary" href="/book">
-            List Your Turf
+              List Your Turf
             </Button>
           </div>
           {/*  */}

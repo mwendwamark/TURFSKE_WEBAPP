@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -17,24 +17,12 @@ const nav_links = [
 
 export function Navbar({ variant = "primary" }) {
   const [is_drawer_open, set_is_drawer_open] = useState(false);
-  const [is_scrolled, set_is_scrolled] = useState(false);
   const [is_hidden, set_is_hidden] = useState(false);
-  const last_scroll_y = useRef(0);
   const pathname = usePathname();
 
   useEffect(() => {
     const handle_scroll = () => {
-      const current_y = window.scrollY;
-
-      if (current_y > 80) {
-        set_is_scrolled(true);
-        set_is_hidden(current_y > last_scroll_y.current);
-      } else {
-        set_is_scrolled(false);
-        set_is_hidden(false);
-      }
-
-      last_scroll_y.current = current_y;
+      set_is_hidden(window.scrollY > 80);
     };
 
     window.addEventListener("scroll", handle_scroll, { passive: true });
@@ -52,8 +40,7 @@ export function Navbar({ variant = "primary" }) {
 
   const get_navbar_classes = () => {
     const classes = [styles.navbar];
-    if (is_scrolled) classes.push(styles.scrolled);
-    if (is_hidden && is_scrolled) classes.push(styles.hidden);
+    if (is_hidden) classes.push(styles.hidden);
     return classes.join(" ");
   };
 
@@ -63,11 +50,6 @@ export function Navbar({ variant = "primary" }) {
     return classes.join(" ");
   };
 
-  const get_icon_color = () => {
-    if (is_scrolled) return "#1e1e1e";
-    return variant === "primary" ? "#ffffff" : "#1e1e1e";
-  };
-
   return (
     <>
       <nav className={get_navbar_classes()}>
@@ -75,9 +57,7 @@ export function Navbar({ variant = "primary" }) {
           {/* Logo */}
           <div className={styles.logo}>
             <Link href="/" className={styles.logo_link}>
-              <span
-                className={`${styles.logo_text} ${is_scrolled ? styles.logo_text_dark : ""}`}
-              >
+              <span className={styles.logo_text}>
                 TURFSKE
               </span>
             </Link>
@@ -101,16 +81,7 @@ export function Navbar({ variant = "primary" }) {
 
           {/* CTA */}
           <div className={styles.cta}>
-            {/* <Link
-              href="/book"
-              className={`${styles.cta_btn} ${is_scrolled ? styles.cta_btn_dark : styles.cta_btn_green}`}
-            >
-              Book Now
-            </Link> */}
-            <Button
-            variant="glass"
-              className={` ${is_scrolled ? styles.cta_btn_dark : styles.cta_btn_green}`}
-            >
+            <Button variant="glass" className={styles.cta_btn_green}>
               Book Now
             </Button>
           </div>
@@ -121,7 +92,7 @@ export function Navbar({ variant = "primary" }) {
             onClick={() => set_is_drawer_open(true)}
             aria-label="Open menu"
           >
-            <Menu size={24} color={get_icon_color()} />
+            <Menu size={24} color={variant === "primary" ? "#ffffff" : "#1e1e1e"} />
           </button>
         </div>
       </nav>

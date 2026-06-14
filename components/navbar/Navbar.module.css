@@ -43,7 +43,7 @@
 .logo_text {
   font-size: 1.35rem;
   font-weight: var(--fw_thick);
-  letter-spacing: 0.12em;
+  letter-spacing: 0em;
   text-transform: uppercase;
   color: var(--white);
   transition: color var(--transition-normal);

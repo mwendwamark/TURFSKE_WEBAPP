@@ -1,0 +1,54 @@
+/* ─────────────────────────────────────────────
+   SmallHeader — section label — TurfsKE
+───────────────────────────────────────────── */
+
+.container {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* ── Text ── */
+.text {
+  font-family: var(--font_family);
+  font-size: 18px;
+  font-weight: var(--fw_medium);
+  color: var(--small-header-color, var(--primary_green));
+  text-transform: uppercase;
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+
+/* ── Spinning ball ── */
+.ball {
+  color: var(--small-header-color, var(--primary_green));
+  flex-shrink: 0;
+  animation: spin 2.5s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: default  (bare — just icon + text)
+───────────────────────────────────────────── */
+.default {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: pill  (light green pill background)
+───────────────────────────────────────────── */
+.pill {
+  background-color: rgba(27, 82, 40, 0.08);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem 0.35rem 0.6rem;
+}
