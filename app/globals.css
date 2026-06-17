@@ -157,6 +157,10 @@ button {
   .max_width_80 {
     max-width: 90%;
   }
+
+  .max_width_50 {
+    max-width: 90%;
+  }
 }
 
 @media (max-width: 768px) {
@@ -173,6 +177,10 @@ button {
   }
 
   .max_width_80 {
+    max-width: 100%;
+  }
+
+  .max_width_50 {
     max-width: 100%;
   }
 }

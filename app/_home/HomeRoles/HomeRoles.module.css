@@ -1,0 +1,304 @@
+/* ── Section shell */
+.roles {
+  background-color: var(--off-white);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+}
+
+/* ── Section header */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.headline {
+  font-size: clamp(2rem, 3.5vw + 0.5rem, 3.2rem);
+  /* font-weight: var(--fw_medium); */
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+  color: var(--black);
+  max-width: 48%;
+}
+
+/* ── TWO-COLUMN LAYOUT */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  align-items: stretch; /* changed from start to stretch */
+}
+
+/* ── LEFT — role selector cards */
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: sticky;
+  top: 6rem;
+  /* make left column fill the full grid row height */
+  align-self: stretch;
+}
+
+.roleCard {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 3rem 2rem;
+  background: var(--white);
+  border: 1.5px solid #d8d8d8;
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+  overflow: hidden;
+  flex: 1;
+}
+
+.roleCard:hover {
+  border-color: var(--primary_green);
+}
+
+.roleCardActive {
+  background: var(--primary_green);
+  border-color: var(--primary_green);
+}
+
+.roleCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* .roleLabel {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--black);
+  transition: color 0.2s ease;
+} */
+
+.roleCardActive .roleLabel {
+  color: var(--white);
+}
+
+.roleSub {
+  font-size: 0.875rem;
+  color: var(--grey);
+  transition: color 0.2s ease;
+}
+
+.roleCardActive .roleSub {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.roleIcon {
+  font-size: 6rem;
+  color: #d8d8d8;
+}
+
+.arrow {
+  font-size: 1.1rem;
+  color: #c0c0c0;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.arrowActive {
+  color: var(--white);
+  transform: rotate(-45deg);
+}
+
+/* thin green pip on the left edge of active card */
+.activePip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  /* background: #8bc34a; */
+  border-radius: 0 2px 2px 0;
+}
+
+/* ── RIGHT — content panel */
+.right {
+  /* background: var(--white); */
+  border: 1.5px solid #d8d8d8;
+  border-radius: 16px;
+  padding: 2.5rem;
+  animation: fadeUp 0.25s ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary_green);
+  border: 1px solid var(--primary_green);
+  border-radius: 20px;
+  padding: 0.3rem 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.contentHeadline {
+  font-size: clamp(1.4rem, 2.2vw + 0.3rem, 2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.3px;
+  color: var(--black);
+  margin-bottom: 0.75rem;
+}
+
+.contentSub {
+  font-size: 1rem;
+  color: var(--grey);
+  line-height: 1.65;
+  max-width: 52ch;
+  margin-bottom: 2rem;
+}
+
+/* ── Steps */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 2rem;
+}
+
+.step {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid #d8d8d8;
+}
+
+.step:last-child {
+  border-bottom: 1px solid #ebebeb;
+}
+
+.stepNum {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--primary_green);
+  padding-top: 0.2rem;
+  min-width: 2rem;
+  flex-shrink: 0;
+}
+
+.stepText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.stepTitle {
+  font-size: 1.025rem;
+  font-weight: 500;
+  color: var(--black);
+}
+
+.stepDesc {
+  font-size: 0.9rem;
+  color: var(--grey);
+  line-height: 1.55;
+}
+
+/* ── CTAs */
+.ctas {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+}
+
+.ctaPrimary {
+  background: var(--primary_green);
+  color: var(--white);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.75rem 1.75rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.ctaPrimary:hover {
+  background: var(--secondary_green);
+}
+
+.ctaSecondary {
+  background: transparent;
+  color: var(--black);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.ctaSecondary:hover {
+  color: var(--primary_green);
+}
+
+/* ── Responsive */
+@media (max-width: 1024px) {
+  .headline {
+    max-width: 70%;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .roleIcon {
+    font-size: 4rem;
+  }
+  
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .left {
+    position: static;
+    flex-direction: row;
+  }
+
+  .roleCard {
+    flex: 1;
+  }
+
+  .headline {
+    max-width: 100%;
+  }
+
+  .right {
+    padding: 1.75rem;
+  }
+}

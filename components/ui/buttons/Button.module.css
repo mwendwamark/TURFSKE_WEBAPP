@@ -177,6 +177,61 @@
 }
 
 /* ─────────────────────────────────────────────
+   VARIANT: black (black bg — use on dark surfaces)
+───────────────────────────────────────────── */
+.black {
+  background-color: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+.black .arrow {
+  background-color: var(--white);
+  color: var(--black);
+}
+
+.black:hover {
+  background-color: var(--white);
+  color: var(--black);
+  border-color: var(--black);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -14px rgba(30, 30, 30, 0.45);
+}
+
+.black:hover .arrow {
+  background-color: var(--black);
+  color: var(--white);
+  transform: translateX(4px);
+}
+
+.black_outline{
+  background-color: var(--white);
+  color: var(--black);
+  border-color: var(--black);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -14px rgba(30, 30, 30, 0.45);
+}
+ 
+.black_outline .arrow {
+  background-color: var(--black);
+  color: var(--white);
+  transform: translateX(4px);
+}
+
+.black_outline:hover {
+  background-color: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -14px rgba(30, 30, 30, 0.45);
+}
+
+.black_outline:hover .arrow {
+  background-color: var(--white);
+  color: var(--black);
+  transform: translateX(4px);
+}
+/* ─────────────────────────────────────────────
    VARIANT: outline  (transparent, green border)
    No arrow by default.
 ───────────────────────────────────────────── */

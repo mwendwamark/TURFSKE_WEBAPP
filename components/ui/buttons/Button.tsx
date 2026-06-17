@@ -4,7 +4,7 @@ import styles from "./Button.module.css";
 import { ArrowUpRight } from "lucide-react";
 
 export interface ButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  variant?: "primary" | "secondary" | "white" | "glass" | "outline";
+  variant?: "primary" | "secondary" | "white" | "glass" | "outline" | "black" | "black_outline";
   href?: string;
   arrow?: boolean;
   className?: string;

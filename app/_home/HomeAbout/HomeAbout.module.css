@@ -11,14 +11,14 @@
   gap: 1rem;
 }
 
-.h_about_right_contents p{
-color: var(--grey);
+.h_about_right_contents p {
+  color: var(--grey);
 }
 
 @media (max-width: 1024px) {
   .h_about_container {
     flex-direction: column;
     align-items: flex-start;
-    gap: 2rem;
+    gap: 1rem;
   }
 }
