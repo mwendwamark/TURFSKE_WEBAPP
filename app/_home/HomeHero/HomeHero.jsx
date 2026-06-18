@@ -48,11 +48,11 @@ export function HomeHero() {
       {/* Three-column layout: brand col | spacer | content col */}
       <div className={`${styles.hero_inner} container`}>
         {/* LEFT — vertical brand text running bottom-to-top */}
-        <div className={styles.hero_brand_col} aria-label="TURFSKE">
-          <div className={styles.hero_brand}>
+        <div className={styles.hero_brand_col} aria-label="TurfsKE — Find and book turfs in Kenya">
+          <h1 className={styles.hero_brand}>
             <span className={styles.brand_solid}>TURFS</span>
             <span className={styles.brand_outline}>KE</span>
-          </div>
+          </h1>
         </div>
 
         {/* MIDDLE — empty, lets the background image show */}

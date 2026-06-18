@@ -75,9 +75,7 @@ export default function HomeRoles() {
         <header className={styles.header}>
           <SmallHeader text="Who is TurfsKE for?" />
           <h2 className={`section_title ${styles.headline}`}>
-            Designed for the pitch,
-            <br />
-            whoever side you're on.
+            Turfs in Kenya — Designed for Every Player &amp; Manager
           </h2>
         </header>
 

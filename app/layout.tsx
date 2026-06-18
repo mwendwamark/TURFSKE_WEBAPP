@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Google_Sans_Flex } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const googleSansFlex = Google_Sans_Flex({
@@ -9,8 +8,13 @@ const googleSansFlex = Google_Sans_Flex({
 });
 
 export const metadata: Metadata = {
-  title: "TURFSKE",
-  description: "Easiest way to find and book a turf | Find turfs in Kenya",
+  metadataBase: new URL("https://turfske.vercel.app"),
+  title: {
+    default: "TurfsKE — Find & Book the Best Turfs in Kenya",
+    template: "%s | TurfsKE",
+  },
+  description:
+    "Easiest way to find and book a turf in Kenya. Browse, compare, and reserve quality pitches near you.",
   keywords: [
     "Turfs in Kenya",
     "Turfs in Nairobi",
@@ -22,7 +26,24 @@ export const metadata: Metadata = {
     "Turf booking app Kenya",
     "Turf booking platform Kenya",
     "Turf booking system Kenya",
+    "football pitches Kenya",
+    "sports grounds Kenya",
   ],
+  openGraph: {
+    title: "TurfsKE — Find & Book Turfs in Kenya",
+    description:
+      "The easiest way to find and book turfs across Kenya. Browse pitches, compare facilities, and reserve your slot.",
+    url: "https://turfske.vercel.app",
+    siteName: "TurfsKE",
+    locale: "en_KE",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TurfsKE — Find & Book Turfs in Kenya",
+    description:
+      "The easiest way to find and book turfs across Kenya.",
+  },
   verification: {
     google: "hvtvgLUAEEBi-hqFdayn1BtW7uQOORA74u-rJ_xKVu4",
   },

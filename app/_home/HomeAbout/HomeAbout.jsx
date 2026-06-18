@@ -9,11 +9,11 @@ const HomeAbout = () => {
       <div className={`${styles.h_about_container} container`}>
         <header className={`section_header ${styles.h_about_header}`}>
           <SmallHeader text="What is TurfsKe?" />
-          <h1
+          <h2
             className={` max_width_80 section_title ${styles.h_about_large_header}`}
           >
-            Kenya&apos;s number one platform for finding turfs around you
-          </h1>
+            Kenya&apos;s #1 Platform for Booking Turfs Near You
+          </h2>
         </header>
 
         <div className={`max_width_80 ${styles.h_about_right_contents}`}>
