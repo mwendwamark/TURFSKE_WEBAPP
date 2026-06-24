@@ -12,9 +12,9 @@
 /* ── Text ── */
 .text {
   font-family: var(--font_family);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: var(--fw_medium);
-  color: var(--small-header-color, var(--primary_green));
+  color: var(--small_header_color, var(--primary_green));
   text-transform: uppercase;
   letter-spacing: -0.3px;
   line-height: 1;
@@ -22,18 +22,14 @@
 
 /* ── Spinning ball ── */
 .ball {
-  color: var(--small-header-color, var(--primary_green));
+  color: var(--small_header_color, var(--primary_green));
   flex-shrink: 0;
   animation: spin 2.5s linear infinite;
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 /* ─────────────────────────────────────────────
@@ -45,10 +41,62 @@
 }
 
 /* ─────────────────────────────────────────────
-   VARIANT: pill  (light green pill background)
+   VARIANT: pill  (liquid glass — light green tint)
 ───────────────────────────────────────────── */
 .pill {
   background-color: rgba(27, 82, 40, 0.08);
   border-radius: 999px;
   padding: 0.35rem 0.85rem 0.35rem 0.6rem;
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: pill_black  (white text on black)
+───────────────────────────────────────────── */
+.pill_black {
+  --small_header_color: var(--white);
+  background-color: var(--black);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem 0.35rem 0.6rem;
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: pill_green  (white text on primary green)
+───────────────────────────────────────────── */
+.pill_green {
+  --small_header_color: var(--white);
+  background-color: var(--primary_green);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem 0.35rem 0.6rem;
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: pill_lime  (dark green text on lime)
+   — useful on dark backgrounds
+───────────────────────────────────────────── */
+.pill_lime {
+  --small_header_color: var(--primary_green);
+  background-color: #c7e976;
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem 0.35rem 0.6rem;
+}
+
+.pill_white {
+  --small_header_color: var(--black);
+  background-color: var(--white);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem 0.35rem 0.6rem;
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: white  (white text & icon, no bg)
+───────────────────────────────────────────── */
+.white {
+  --small_header_color: var(--white);
+}
+
+/* ─────────────────────────────────────────────
+   VARIANT: black  (black text & icon, no bg)
+───────────────────────────────────────────── */
+.black {
+  --small_header_color: var(--black);
 }

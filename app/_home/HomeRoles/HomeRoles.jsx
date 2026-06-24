@@ -73,7 +73,9 @@ export default function HomeRoles() {
     <section className={`section ${styles.roles}`}>
       <div className={`container ${styles.inner}`}>
         <header className={styles.header}>
-          <SmallHeader text="Who is TurfsKE for?" />
+          <div>
+            <SmallHeader text="Who is TurfsKE for?" variant="pill_lime" />
+          </div>
           <h2 className={`section_title ${styles.headline}`}>
             Turfs in Kenya — Designed for Every Player &amp; Manager
           </h2>

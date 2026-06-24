@@ -8,9 +8,12 @@ const HomeAbout = () => {
     <section className={`section ${styles.about} ${styles.container}`}>
       <div className={`${styles.h_about_container} container`}>
         <header className={`section_header ${styles.h_about_header}`}>
-          <SmallHeader text="What is TurfsKe?" />
+          <div className={`two_column_header ${styles.h_about_headers_left}`}></div>
+          <div className={styles.h_about_label}>
+            <SmallHeader text="What is TurfsKe?" variant="pill_lime" />
+          </div>
           <h2
-            className={` max_width_80 section_title ${styles.h_about_large_header}`}
+            className={`max_width_80 section_title ${styles.h_about_large_header}`}
           >
             Kenya&apos;s #1 Platform for Booking Turfs Near You
           </h2>
