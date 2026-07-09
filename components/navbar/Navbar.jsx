@@ -81,8 +81,8 @@ export function Navbar({ variant = "primary" }) {
 
           {/* CTA */}
           <div className={styles.cta}>
-            <Button variant="glass" className={styles.cta_btn_green}>
-              Book Now
+            <Button variant="glass" className={styles.cta_btn_green} href="/auth/signup">
+              Sign up
             </Button>
           </div>
 
@@ -135,11 +135,11 @@ export function Navbar({ variant = "primary" }) {
 
         <div className={styles.drawer_cta}>
           <Link
-            href="/book"
+            href="/auth/signup"
             className={styles.drawer_btn}
             onClick={close_drawer}
           >
-            Book Now
+            Sign Up
           </Link>
         </div>
       </div>

@@ -144,6 +144,176 @@ button {
   font-weight: var(--fw_medium);
 }
 
+/* ── Auth pages ──────────────────────────────── */
+.auth_page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.auth_card {
+  background: var(--white);
+  border: 1.5px solid #d8d8d8;
+  border-radius: 16px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auth_header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.auth_logo {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--primary_green);
+  text-transform: uppercase;
+}
+
+.auth_title {
+  font-size: clamp(1.4rem, 3vw, 1.75rem);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--black);
+}
+
+.auth_sub {
+  font-size: 0.9rem;
+  color: var(--grey);
+}
+
+/* Role toggle */
+.auth_role_toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  background: var(--off-white);
+  border-radius: 10px;
+  padding: 0.3rem;
+}
+
+.auth_role_btn {
+  padding: 0.6rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--grey);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.auth_role_btn_active {
+  background: var(--white);
+  color: var(--primary_green);
+  font-weight: 600;
+  border: 1px solid #d0d0d0;
+}
+
+/* Form */
+.auth_form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth_field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.auth_field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--black);
+}
+
+.auth_field input {
+  height: 46px;
+  border: 1.5px solid #d8d8d8;
+  border-radius: 8px;
+  padding: 0 0.875rem;
+  font-size: 0.9rem;
+  color: var(--black);
+  background: var(--white);
+  transition: border-color 0.15s ease;
+  width: 100%;
+}
+
+.auth_field input:focus {
+  outline: none;
+  border-color: var(--primary_green);
+}
+
+.auth_forgot {
+  text-align: right;
+  margin-top: -0.25rem;
+}
+
+.auth_forgot a {
+  font-size: 0.825rem;
+  color: var(--primary_green);
+}
+
+.auth_submit {
+  height: 48px;
+  background: var(--primary_green);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.25rem;
+  transition: background 0.2s ease;
+}
+
+.auth_submit:hover:not(:disabled) {
+  background: var(--secondary_green);
+}
+
+.auth_submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth_message {
+  font-size: 0.875rem;
+  border-radius: 8px;
+  padding: 0.6rem 0.875rem;
+}
+
+.auth_message_error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.auth_message_success {
+  background: #f0fdf4;
+  color: var(--primary_green);
+}
+
+.auth_footer {
+  font-size: 0.875rem;
+  color: var(--grey);
+  text-align: center;
+}
+
+.auth_footer a {
+  color: var(--primary_green);
+  font-weight: 500;
+}
+
 @media (min-width: 2000px) {
   .container {
     max-width: 2000px;

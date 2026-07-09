@@ -4,7 +4,7 @@ import HomeAbout from "./HomeAbout/HomeAbout.jsx";
 import Navbar from "@/components/navbar/Navbar";
 import HomeRoles from "./HomeRoles/HomeRoles.jsx";
 import HomeSolutions from "./HomeSolutions/HomeSolutions.jsx";
-
+import HomeTestimonial from "./HomeTestimonials/HomeTestimonial";
 const page = () => {
   return (
     <div>
@@ -13,6 +13,7 @@ const page = () => {
       <HomeAbout />
       <HomeRoles />
       <HomeSolutions />
+      <HomeTestimonial/>
     </div>
   );
 };
