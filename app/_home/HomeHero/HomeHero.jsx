@@ -39,7 +39,10 @@ export function HomeHero() {
           alt=""
           fill
           priority
+          fetchPriority="high"
+          quality={60}
           sizes="100vw"
+          placeholder="blur"
           className={styles.hero_image}
         />
       </div>

@@ -3,7 +3,6 @@
 import React, { useEffect, useRef } from "react";
 import styles from "./HomeSolutions.module.css";
 import SmallHeader from "@/components/ui/smallHeader/SmallHeader";
-import { annotate } from "rough-notation";
 import { TbCalendarOff, TbBolt, TbPhoneOff, TbMapPins } from "react-icons/tb";
 
 const PROBLEMS = [
@@ -42,20 +41,35 @@ export default function HomeSolutions() {
   const annotationRef = useRef(null);
   const cardsRef = useRef([]);
 
-  /* ── Rough-notation circle on "TurfsKe" */
+  /* ── Rough-annotation circle on "TurfsKe" — lazy-loaded on viewport entry */
   useEffect(() => {
-    if (turfSkeRef.current) {
-      annotationRef.current = annotate(turfSkeRef.current, {
-        type: "circle",
-        color: "#c7e976",
-        padding: 8,
-        strokeWidth: 2.5,
-        iterations: 2,
-        animationDuration: 800,
-      });
-      annotationRef.current.show();
-    }
+    if (!turfSkeRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            import("rough-notation").then(({ annotate }) => {
+              annotationRef.current = annotate(turfSkeRef.current, {
+                type: "circle",
+                color: "#c7e976",
+                padding: 8,
+                strokeWidth: 2.5,
+                iterations: 2,
+                animationDuration: 800,
+              });
+              annotationRef.current.show();
+            });
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(turfSkeRef.current);
     return () => {
+      observer.disconnect();
       if (annotationRef.current) annotationRef.current.remove();
     };
   }, []);

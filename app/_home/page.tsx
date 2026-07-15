@@ -1,10 +1,13 @@
 import React from "react";
+import dynamic from "next/dynamic";
 import HomeHero from "./HomeHero/HomeHero";
-import HomeAbout from "./HomeAbout/HomeAbout.jsx";
 import Navbar from "@/components/navbar/Navbar";
-import HomeRoles from "./HomeRoles/HomeRoles.jsx";
-import HomeSolutions from "./HomeSolutions/HomeSolutions.jsx";
-import HomeTestimonial from "./HomeTestimonials/HomeTestimonial";
+
+const HomeAbout = dynamic(() => import("./HomeAbout/HomeAbout.jsx"));
+const HomeRoles = dynamic(() => import("./HomeRoles/HomeRoles.jsx"));
+const HomeSolutions = dynamic(() => import("./HomeSolutions/HomeSolutions.jsx"));
+const HomeTestimonial = dynamic(() => import("./HomeTestimonials/HomeTestimonial"));
+
 const page = () => {
   return (
     <div>
