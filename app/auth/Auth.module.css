@@ -1,0 +1,425 @@
+/* ─────────────────────────────────────────────
+   Auth Layout — TurfsKE
+   Two-column: visual panel left, form right
+───────────────────────────────────────────── */
+
+/* ── Page wrapper ── */
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+}
+
+/* ── Left panel — visual/brand side ── */
+.visual {
+  position: relative;
+  background-color: var(--black);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 2.5rem;
+  min-height: 100vh;
+}
+
+.visual_image {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  opacity: 0.55;
+}
+
+.visual_overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.75) 0%,
+    rgba(0, 0, 0, 0.15) 60%,
+    transparent 100%
+  );
+}
+
+.visual_brand {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: absolute;
+  top: 2rem;
+  left: 2.5rem;
+}
+
+.visual_logo_text {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--white);
+  text-transform: uppercase;
+}
+
+.visual_content {
+  position: relative;
+  z-index: 2;
+}
+
+.visual_tagline {
+  font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.15;
+  letter-spacing: -0.3px;
+  max-width: 20ch;
+}
+
+.visual_sub {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 0.6rem;
+  max-width: 36ch;
+  line-height: 1.55;
+}
+
+/* ── Right panel — form side ── */
+.form_panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 4rem;
+  background: var(--white);
+  position: relative;
+  overflow-y: auto;
+}
+
+/* Back to home button — top left of form panel */
+.back_btn {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--grey);
+  text-decoration: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1.5px solid #e0e0e0;
+  background: transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  line-height: 1;
+}
+
+.back_btn:hover {
+  color: var(--black);
+  border-color: var(--black);
+}
+
+.back_btn_icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+/* ── Form container ── */
+.form_inner {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Header ── */
+.form_header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form_title {
+  font-size: clamp(1.5rem, 2.5vw, 1.9rem);
+  font-weight: 700;
+  color: var(--black);
+  line-height: 1.1;
+  letter-spacing: -0.3px;
+}
+
+.form_sub {
+  font-size: 0.9rem;
+  color: var(--grey);
+  margin-top: 0.15rem;
+}
+
+/* ── Role toggle (signup only) ── */
+.role_toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  background: var(--off-white);
+  border-radius: 10px;
+  padding: 0.3rem;
+}
+
+.role_btn {
+  padding: 0.6rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--grey);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.role_btn_active {
+  background: var(--white);
+  color: var(--primary_green);
+  font-weight: 600;
+  border: 1.5px solid #d8d8d8;
+}
+
+/* ── Form fields ── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--black);
+}
+
+.field input {
+  height: 48px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0 1rem;
+  font-size: 0.9rem;
+  color: var(--black);
+  background: var(--white);
+  transition: border-color 0.15s ease;
+  width: 100%;
+  font-family: var(--font_family);
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--primary_green);
+}
+
+.field input::placeholder {
+  color: #b0b0b0;
+}
+
+/* ── Forgot password link ── */
+.forgot {
+  text-align: right;
+  margin-top: -0.25rem;
+}
+
+.forgot a {
+  font-size: 0.8rem;
+  color: var(--grey);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.forgot a:hover {
+  color: var(--primary_green);
+}
+
+/* ── Submit button ── */
+.submit_btn {
+  height: 50px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.25rem;
+  transition: background 0.2s ease;
+  font-family: var(--font_family);
+  letter-spacing: -0.01em;
+}
+
+.submit_btn:hover:not(:disabled) {
+  background: var(--primary_green);
+}
+
+.submit_btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Divider ── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #c0c0c0;
+  font-size: 0.8rem;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e8e8e8;
+}
+
+/* ── OAuth buttons ── */
+.oauth_group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.oauth_btn {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  background: var(--white);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--black);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  font-family: var(--font_family);
+}
+
+.oauth_btn:hover {
+  border-color: #b0b0b0;
+  background: #fafafa;
+}
+
+.oauth_icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* ── Footer link ── */
+.form_footer {
+  font-size: 0.875rem;
+  color: var(--grey);
+  text-align: center;
+}
+
+.form_footer a {
+  color: var(--black);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.form_footer a:hover {
+  color: var(--primary_green);
+}
+
+/* ── Terms note ── */
+.terms {
+  font-size: 0.78rem;
+  color: #a0a0a0;
+  line-height: 1.5;
+}
+
+.terms a {
+  color: var(--grey);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.terms a:hover {
+  color: var(--black);
+}
+
+/* ── Message (error / success) ── */
+.message {
+  font-size: 0.875rem;
+  border-radius: 8px;
+  padding: 0.65rem 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.message_error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.message_success {
+  background: #f0fdf4;
+  color: var(--primary_green);
+}
+
+.message a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: inherit;
+}
+
+/* ─────────────────────────────────────────────
+   Responsive
+───────────────────────────────────────────── */
+
+/* Tablet — collapse left panel */
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .visual {
+    display: none;
+  }
+
+  .form_panel {
+    padding: 2rem 1.5rem;
+    min-height: 100vh;
+    justify-content: flex-start;
+    padding-top: 5rem;
+  }
+
+  .form_inner {
+    max-width: 100%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .form_panel {
+    padding: 1.5rem 1.25rem;
+    padding-top: 4.5rem;
+  }
+
+  .form_title {
+    font-size: 1.5rem;
+  }
+
+  .back_btn {
+    top: 1.25rem;
+    left: 1.25rem;
+  }
+}

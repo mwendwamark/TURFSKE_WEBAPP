@@ -1,0 +1,92 @@
+/* ── Dashboard ───────────────────────────────── */
+.dashboard_page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--off-white);
+  padding: 2rem 1rem;
+}
+
+.dashboard_card {
+  background: var(--white);
+  border: 1.5px solid #d8d8d8;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dashboard_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard_welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.dashboard_role_badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary_green);
+  border: 1px solid var(--primary_green);
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+  align-self: flex-start;
+}
+
+.dashboard_title {
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+  font-weight: 600;
+  color: var(--black);
+  line-height: 1.15;
+}
+
+.dashboard_sub {
+  font-size: 0.9rem;
+  color: var(--grey);
+}
+
+.dashboard_tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.dashboard_tile {
+  background: var(--off-white);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.dashboard_tile_label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--grey);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dashboard_tile_value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.dashboard_note {
+  font-size: 0.85rem;
+  color: var(--grey);
+  border-top: 1px solid #ebebeb;
+  padding-top: 1rem;
+}
