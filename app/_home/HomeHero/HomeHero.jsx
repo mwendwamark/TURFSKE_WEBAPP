@@ -38,7 +38,7 @@ export function HomeHero() {
           src={heroImg}
           alt=""
           fill
-          priority
+          preload
           fetchPriority="high"
           quality={60}
           sizes="100vw"
