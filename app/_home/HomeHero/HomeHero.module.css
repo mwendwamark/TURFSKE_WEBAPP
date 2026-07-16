@@ -36,11 +36,13 @@
   position: relative;
   z-index: 2;
   width: 100%;
+  max-width: 90%;
   margin: 0 auto;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding-bottom: 3rem;
+  padding-bottom: 5rem;
+  padding-top: 9rem;
   gap: 2rem;
 }
 
@@ -54,7 +56,7 @@
 }
 
 .brand_solid {
-  font-size: clamp(5rem, 14vw, 8rem);
+  font-size: clamp(5rem, 14vw, 13rem);
   font-weight: 900;
   letter-spacing: -0.03em;
   color: var(--white);
@@ -63,7 +65,7 @@
 }
 
 .brand_outline {
-  font-size: clamp(5rem, 14vw, 8rem);
+  font-size: clamp(5rem, 14vw, 13rem);
   font-weight: 900;
   letter-spacing: -0.03em;
   text-transform: uppercase;
@@ -101,10 +103,11 @@
 }
 
 .description_text {
-  font-size: var(--fs_normal);
+  font-size: 0.95rem;
   font-weight: var(--fw_normal);
   color: rgba(255, 255, 255, 0.82);
   line-height: 1.75;
+  max-width: 32ch;
 }
 
 /* CTA buttons */
@@ -113,6 +116,46 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  font-size: 0.8125rem;
+  font-weight: var(--fw_medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn_primary {
+  background-color: var(--secondary_green);
+  color: var(--white);
+  border: 1.5px solid var(--secondary_green);
+}
+
+.btn_primary:hover {
+  background-color: var(--primary_green);
+  border-color: var(--primary_green);
+  color: var(--white);
+}
+
+.btn_outline {
+  background-color: transparent;
+  color: var(--white);
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+}
+
+.btn_outline:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--white);
 }
 
 /* Social icons — horizontal */
@@ -175,7 +218,7 @@
 
 @media (max-width: 480px) {
   .hero_actions {
-    /* flex-direction: column; */
+    flex-direction: column;
     align-items: flex-start;
     width: 100%;
   }

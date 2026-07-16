@@ -38,24 +38,21 @@ export function HomeHero() {
           src={heroImg}
           alt=""
           fill
-          preload
-          fetchPriority="high"
-          quality={60}
+          priority
           sizes="100vw"
-          placeholder="blur"
           className={styles.hero_image}
         />
       </div>
       <div className={styles.hero_overlay} />
 
       {/* Three-column layout: brand col | spacer | content col */}
-      <div className={`${styles.hero_inner} container`}>
+      <div className={styles.hero_inner}>
         {/* LEFT — vertical brand text running bottom-to-top */}
-        <div className={styles.hero_brand_col} aria-label="TurfsKE — Find and book turfs in Kenya">
-          <h1 className={styles.hero_brand}>
+        <div className={styles.hero_brand_col} aria-label="TURFSKE">
+          <div className={styles.hero_brand}>
             <span className={styles.brand_solid}>TURFS</span>
             <span className={styles.brand_outline}>KE</span>
-          </h1>
+          </div>
         </div>
 
         {/* MIDDLE — empty, lets the background image show */}
@@ -91,7 +88,7 @@ export function HomeHero() {
               Explore Turfs
             </Button>
             <Button size="lg" variant="secondary" href="/book">
-              List Your Turf
+            List Your Turf
             </Button>
           </div>
           {/*  */}
