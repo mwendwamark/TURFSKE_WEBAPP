@@ -26,10 +26,23 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+    if (!error && session) {
+      // Check if this user already has a profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+
+      // New Google user — no profile yet — send to role selection
+      if (!profile) {
+        return NextResponse.redirect(`${origin}/auth/select-role`);
+      }
+
+      // Existing user — send to dashboard
+      return NextResponse.redirect(`${origin}/dashboard`);
     }
   }
 

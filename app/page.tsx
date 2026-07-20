@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import React from "react";
 import Home from "@/app/_home/page";
+import Footer from "@/components/footer/Footer";
 
 export const metadata: Metadata = {
   description:
@@ -16,6 +17,7 @@ const page = () => {
   return (
     <main>
       <Home />
+      <Footer/>
     </main>
   );
 };

@@ -51,6 +51,32 @@ async function createClient() {
 
 //   return { success: "Check your email to confirm your account." };
 // }
+
+// ── Sign in with Google
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      queryParams: {
+        access_type: "offline",
+        prompt: "consent",
+      },
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  // data.url is the Google OAuth URL — redirect the user there
+  if (data.url) {
+    redirect(data.url);
+  }
+}
+
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
 
