@@ -53,7 +53,7 @@ async function createClient() {
 // }
 
 // ── Sign in with Google
-export async function signInWithGoogle() {
+export async function signInWithGoogle(): Promise<void> {
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -68,7 +68,7 @@ export async function signInWithGoogle() {
   });
 
   if (error) {
-    return { error: error.message };
+    throw new Error(error.message);
   }
 
   // data.url is the Google OAuth URL — redirect the user there
