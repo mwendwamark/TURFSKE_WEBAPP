@@ -7,6 +7,7 @@ const HomeAbout = dynamic(() => import("./HomeAbout/HomeAbout.jsx"));
 const HomeRoles = dynamic(() => import("./HomeRoles/HomeRoles.jsx"));
 const HomeSolutions = dynamic(() => import("./HomeSolutions/HomeSolutions.jsx"));
 const HomeTestimonial = dynamic(() => import("./HomeTestimonials/HomeTestimonial"));
+const HomePricing = dynamic(() => import("./HomePricing/HomePricing.jsx"));
 
 const page = () => {
   return (
@@ -17,6 +18,7 @@ const page = () => {
       <HomeRoles />
       <HomeSolutions />
       <HomeTestimonial/>
+      <HomePricing/>
     </div>
   );
 };
