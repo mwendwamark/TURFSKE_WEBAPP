@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import SmallHeader from "@/components/ui/smallHeader/SmallHeader";
 import styles from "./HomeTestimonial.module.css";
+import { TbPlayerPlayFilled, TbArrowLeft, TbArrowRight } from "react-icons/tb";
 import Img1 from "../../../assets/home/user1.webp";
 import Img2 from "../../../assets/home/user2.webp";
 import Img3 from "../../../assets/home/user3.webp";
@@ -13,32 +14,40 @@ const TESTIMONIALS = [
     id: "brian",
     name: "Brian Otieno",
     role: "Player · Nairobi CBD",
+    headline: "Faster Bookings",
     quote:
-      "I used to call three different numbers before finding an open pitch. With TurfsKE I found one near me, checked the slot, and we were playing by 5pm. That's it.",
+      "I used to call three different numbers before finding an open pitch. With TurfsKE I found one near me, checked the slot, and we were playing by 5pm.",
+    date: "Feb 3, 2026",
     avatar: Img1,
   },
   {
     id: "mercy",
     name: "Mercy Wanjiku",
     role: "Turf Manager · Kasarani",
+    headline: "No More Double Bookings",
     quote:
-      "Before TurfsKE I was getting double bookings every weekend. Now my schedule is clean, I can see every reservation in one place, and my regulars actually come back.",
+      "Before TurfsKE I was getting double bookings every weekend. Now my schedule is clean, and my regulars actually come back.",
+    date: "Jan 18, 2026",
     avatar: Img2,
   },
   {
     id: "kevin",
     name: "Kevin Mwangi",
     role: "Player · Westlands",
+    headline: "Seamless Reservations",
     quote:
-      "The best part? No awkward calls with strangers. I just pick a turf, send a request, and get a confirmation. My whole team books this way now.",
+      "No awkward calls with strangers. I just pick a turf, send a request, and get a confirmation. My whole team books this way now.",
+    date: "Aug 29, 2026",
     avatar: Img3,
   },
   {
     id: "james",
     name: "James Kariuki",
     role: "Turf Owner · Embakasi",
+    headline: "New Customers, Fast",
     quote:
-      "Listing was done in under ten minutes. Within a week I had bookings from people I'd never met. TurfsKE brought customers I would never have reached otherwise.",
+      "Listing was done in under ten minutes. Within a week I had bookings from people I'd never met before.",
+    date: "Jul 10, 2026",
     avatar: Img4,
   },
 ];
@@ -46,62 +55,88 @@ const TESTIMONIALS = [
 export default function HomeTestimonials() {
   const trackRef = useRef(null);
 
+  const scrollByAmount = (direction) => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const pair = track.querySelector(`.${styles.pair}`);
+    const amount = pair ? pair.getBoundingClientRect().width + 40 : 480;
+
+    track.scrollBy({
+      left: direction === "next" ? amount : -amount,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <section className={`section ${styles.testimonials}`}>
       <div className={`container ${styles.inner}`}>
-        <header className={styles.header}>
-          <div>
-            <SmallHeader text="Testimonials" variant="pill_lime" />
+        <header className={`section_header two_column_header ${styles.header}`}>
+          <div className={styles.headerText}>
+            <div>
+              <SmallHeader text="Testimonials" variant="pill_lime" />
+            </div>
+            <h2 className={`section_title ${styles.headline}`}>
+              Don&apos;t just take our word for it. <br />
+              Here&apos;s what our users have to say
+            </h2>
           </div>
-          <h2
-            className={`section_title max_width_50 ${styles.h_solutions_large_header}`}
-          >
-            Don&apos;t just take our word for it. <br />
-            Here&apos;s what our users have to say
-          </h2>
+
+          <div className={styles.navButtons}>
+            <button
+              type="button"
+              className={styles.navBtn}
+              onClick={() => scrollByAmount("prev")}
+              aria-label="Previous testimonial"
+            >
+              <TbArrowLeft aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className={styles.navBtn}
+              onClick={() => scrollByAmount("next")}
+              aria-label="Next testimonial"
+            >
+              <TbArrowRight aria-hidden="true" />
+            </button>
+          </div>
         </header>
 
-        {/* ── Scrollable card track */}
+        {/* ── Scrollable card track: video thumbnail + quote card pairs */}
         <div className={styles.trackWrapper}>
           <div className={styles.track} ref={trackRef}>
             {TESTIMONIALS.map((t) => (
-              <article
-                key={t.id}
-                className={styles.card}
-              >
-                {/* ✅ Fix 1: t.avatar.src extracts the string URL from the Next.js image object */}
+              <div key={t.id} className={styles.pair}>
+                {/* Video-style thumbnail */}
                 <div
-                  className={styles.avatarBg}
+                  className={styles.videoCard}
                   style={{ backgroundImage: `url(${t.avatar.src})` }}
-                  aria-hidden="true"
-                />
+                >
+                  {/* <span className={styles.playBtn} aria-hidden="true">
+                    <TbPlayerPlayFilled />
+                  </span> */}
+                  <div className={styles.videoFooter}>
+                    <span className={styles.videoName}>{t.name}</span>
+                    <span className={styles.videoLabel}>Video Testimonial</span>
+                  </div>
+                </div>
 
-                {/* Default state content */}
-                <div className={styles.cardDefault}>
-                  {/* ✅ Fix 2: same here — use t.avatar.src for the img src attribute */}
-                  <img
-                    src={t.avatar.src}
-                    alt={t.name}
-                    className={styles.avatar}
-                    draggable={false}
-                  />
-                  <blockquote className={styles.quote}>
-                    &ldquo;{t.quote}&rdquo;
-                  </blockquote>
-                  <footer className={styles.cardFooter}>
+                {/* Written quote card */}
+                <article className={styles.quoteCard}>
+                  <span className={styles.quoteMark} aria-hidden="true">
+                    &rdquo;
+                  </span>
+                  <div className={styles.quoteHead}>
                     <span className={styles.name}>{t.name}</span>
                     <span className={styles.role}>{t.role}</span>
-                  </footer>
-                </div>
-
-                {/* Hover state — only name + role over expanded bg */}
-                <div className={styles.cardHover} aria-hidden="true">
-                  <footer className={styles.hoverFooter}>
-                    <span className={styles.hoverName}>{t.name}</span>
-                    <span className={styles.hoverRole}>{t.role}</span>
-                  </footer>
-                </div>
-              </article>
+                  </div>
+                  <h3 className={styles.cardHeadline}>{t.headline}</h3>
+                  <blockquote className={styles.quote}>
+                    &ldquo; {t.quote} &rdquo;
+                  </blockquote>
+                  <span className={styles.date}>{t.date}</span>
+                </article>
+              </div>
             ))}
           </div>
         </div>

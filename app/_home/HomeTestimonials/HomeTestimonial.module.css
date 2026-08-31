@@ -10,33 +10,61 @@
   gap: 3.5rem;
 }
 
-/* ── Header */
+/* ── Header — uses global section_header + two_column_header grid */
 .header {
+  align-items: center;
+}
+
+.headerText {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.eyebrow {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--grey);
-}
-
 .headline {
-  font-size: clamp(2rem, 4vw + 0.5rem, 3.4rem);
-  font-weight: 700;
-  line-height: 1.05;
+  /* font-weight: var(--fw_medium); */
   letter-spacing: -0.5px;
   color: var(--black);
-  max-width: 18ch;
+}
+
+/* ── Nav buttons */
+.navButtons {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+  justify-self: end;
+}
+
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1.5px solid #e2e2e2;
+  background-color: var(--white);
+  color: var(--black);
+  font-size: 1.1rem;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.navBtn:hover {
+  background-color: var(--primary_green);
+  border-color: var(--primary_green);
+  color: var(--white);
+}
+
+.navBtn:active {
+  transform: scale(0.94);
 }
 
 /* ── Track */
 .trackWrapper {
-  /* Bleed past the container on the right so cards hint at more */
   margin-right: calc(-5vw);
   overflow: hidden;
 }
@@ -44,11 +72,11 @@
 .track {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: 2.5rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 1rem; /* space for scrollbar on desktop */
+  padding-bottom: 1rem;
   cursor: grab;
 }
 
@@ -56,192 +84,243 @@
   cursor: grabbing;
 }
 
-/* Hide scrollbar visually but keep it functional */
 .track::-webkit-scrollbar {
   height: 0px;
 }
 
-/* ── Card base */
-.card {
-  position: relative;
-  flex: 0 0 350px;
-  height: 400px;
-  background: var(--white);
-  border: 1.5px solid #e2e2e2;
-  border-radius: 1rem;
-  overflow: hidden;
+/* ── Pair: video thumbnail + quote card, kept together while snapping */
+.pair {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  flex: 0 0 auto;
   scroll-snap-align: start;
-  cursor: pointer;
-  --avatar-size: 44px;
 }
 
-/* ── Avatar background layer (the expanding photo) */
-.avatarBg {
-  position: absolute;
-  inset: 0;
+/* ── Video-style thumbnail card */
+.videoCard {
+  position: relative;
+  flex: 0 0 260px;
+  height: 340px;
+  border-radius: 1.25rem;
+  background-color: var(--grey);
   background-size: cover;
   background-position: center top;
-  border-radius: 14px;
-
-  /* Start as invisible — the real avatar img handles the default state */
-  opacity: 0;
-  transform: scale(1.06);
-  transition:
-    opacity 0.45s ease,
-    transform 0.45s ease;
+  overflow: hidden;
+  cursor: pointer;
 }
 
-/* Dark overlay on top of the expanded bg */
-.avatarBg::after {
+.videoCard::after {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.72) 0%,
-    rgba(0, 0, 0, 0.18) 55%,
-    rgba(0, 0, 0, 0.04) 100%
+    rgba(0, 0, 0, 0.78) 0%,
+    rgba(0, 0, 0, 0.15) 45%,
+    rgba(0, 0, 0, 0) 70%
   );
-  border-radius: 14px;
 }
 
-/* ── Default content layer */
-.cardDefault {
+.playBtn {
   position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 3rem 2.5rem;
-  gap: 0;
-  opacity: 1;
-  transition: opacity 0.3s ease;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  background-color: var(--play-btn-color, #ff3b30);
+  color: var(--white);
+  font-size: 1.2rem;
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.5);
+  transition: transform var(--transition-fast);
 }
 
-.avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: center top;
-  border: 2px solid var(--white);
-  flex-shrink: 0;
-  margin-bottom: 2rem;
+.videoCard:hover .playBtn {
+  transform: translate(-50%, -50%) scale(1.08);
 }
 
-.quote {
-  font-size: 0.88rem;
-  color: var(--black);
-  line-height: 1.65;
-  font-style: normal;
-  flex: 1;
-}
-
-.cardFooter {
+.videoFooter {
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  margin-top: auto;
+}
+
+.videoName {
+  font-size: 1rem;
+  font-weight: var(--fw_medium);
+  color: var(--white);
+}
+
+.videoLabel {
+  font-size: 0.75rem;
+  font-weight: var(--fw_normal);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ── Quote card */
+.quoteCard {
+  position: relative;
+  flex: 0 0 380px;
+  height: 340px;
+  background: var(--white);
+  border: 1.5px solid #e2e2e2;
+  border-radius: 1.25rem;
+  padding: 2.25rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.quoteMark {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.75rem;
+  font-size: 4rem;
+  line-height: 1;
+  font-family: Georgia, "Times New Roman", serif;
+  color: #dcdcdc;
+  pointer-events: none;
+}
+
+.quoteHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-right: 3rem;
 }
 
 .name {
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: var(--fw_medium);
   color: var(--black);
-  /* Cursive/handwritten feel like the reference */
-  font-style: italic;
-  letter-spacing: 0.01em;
 }
 
 .role {
-  font-size: 0.925rem;
+  font-size: 0.85rem;
+  font-weight: var(--fw_normal);
   color: var(--grey);
-  font-style: normal;
 }
 
-/* ── Hover content layer (name + role only over expanded bg) */
-.cardHover {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 1.5rem;
-  opacity: 0;
-  transition: opacity 0.35s ease 0.08s;
-  pointer-events: none;
-  z-index: 2;
+.cardHeadline {
+  font-size: 1.2rem;
+  font-weight: var(--fw_medium);
+  color: var(--black);
+  margin-top: 1rem;
+  letter-spacing: -0.2px;
 }
 
-.hoverFooter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.quote {
+  font-size: 0.925rem;
+  font-weight: var(--fw_normal);
+  color: var(--grey);
+  line-height: 1.7;
+  margin-top: 0.75rem;
+  flex: 1;
 }
 
-.hoverName {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--white);
-  font-style: italic;
-  letter-spacing: 0.01em;
-}
-
-.hoverRole {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-style: normal;
-}
-
-/* ── Hover state trigger */
-.card:hover .avatarBg {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.card:hover .cardDefault {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.card:hover .cardHover {
-  opacity: 1;
+.date {
+  align-self: flex-end;
+  font-size: 0.8rem;
+  font-weight: var(--fw_normal);
+  color: var(--grey);
+  margin-top: auto;
 }
 
 /* ── Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .avatarBg,
-  .cardDefault,
-  .cardHover {
+  .playBtn {
     transition: none;
   }
 }
 
 /* ── Responsive */
 @media (max-width: 1024px) {
-  .card {
-    flex: 0 0 280px;
-    height: 400px;
+  .videoCard {
+    flex-basis: 220px;
+    height: 320px;
+  }
+
+  .quoteCard {
+    flex-basis: 340px;
+    height: 320px;
+    padding: 2rem 2.25rem;
   }
 }
 
 @media (max-width: 768px) {
+  .header {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    gap: 1.5rem;
+  }
+
+  .navButtons {
+    justify-self: start;
+  }
+
   .trackWrapper {
     margin-right: calc(-2.5vw);
   }
 
-  .card {
-    flex: 0 0 78vw;
-    height: 380px;
+  .track {
+    gap: 1.5rem;
   }
 
-  .headline {
-    max-width: 100%;
+  .pair {
+    gap: 1rem;
+  }
+
+  .videoCard {
+    flex-basis: 46vw;
+    max-width: 220px;
+    height: 300px;
+  }
+
+  .quoteCard {
+    flex-basis: 62vw;
+    max-width: 300px;
+    height: 300px;
+    padding: 1.75rem 2rem;
+  }
+
+  .quoteMark {
+    font-size: 3.25rem;
   }
 }
 
 @media (max-width: 480px) {
-  .card {
-    flex: 0 0 85vw;
-    height: 360px;
+  .videoCard {
+    flex-basis: 48vw;
+    max-width: 190px;
+    height: 280px;
+  }
+
+  .quoteCard {
+    flex-basis: 68vw;
+    max-width: 260px;
+    height: 280px;
+    padding: 1.5rem 1.75rem;
+  }
+
+  .quoteHead {
+    padding-right: 2.25rem;
+  }
+
+  .cardHeadline {
+    font-size: 1.05rem;
+  }
+
+  .quote {
+    font-size: 0.875rem;
   }
 }
