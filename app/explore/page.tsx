@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import React from "react";
 import Navbar from "@/components/navbar/Navbar";
+import Explore from "./Explore";
 
 export const metadata: Metadata = {
   title: "Explore Turfs in Kenya",
@@ -16,11 +17,12 @@ export const metadata: Metadata = {
 export default function ExplorePage() {
   return (
     <main>
-      <Navbar variant="primary" />
-      <div style={{ padding: "12rem 2rem", textAlign: "center", minHeight: "100vh", backgroundColor: "#fafaf9" }}>
+      <Navbar variant="secondary" />
+      {/* <div style={{ padding: "12rem 2rem", textAlign: "center", minHeight: "100vh", backgroundColor: "#fafaf9" }}>
         <h1 style={{ fontSize: "3rem", marginBottom: "1rem", color: "#1e1e1e" }}>Explore Turfs in Kenya</h1>
         <p style={{ color: "#555555" }}>Discover and compare quality pitches near you.</p>
-      </div>
+      </div> */}
+      <Explore/>
     </main>
   );
 }

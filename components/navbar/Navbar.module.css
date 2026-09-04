@@ -4,7 +4,7 @@
   left: 0;
   width: 100%;
   z-index: 100;
-  padding: 1rem 0;
+  padding-top: 2rem;
   transition:
     transform 0.35s ease,
     background-color 0.3s ease,
@@ -12,14 +12,16 @@
   background-color: transparent;
 }
 
-.navbar.scrolled {
-  background-color: var(--white);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-}
 
 .navbar.hidden {
   transform: translateY(-100%);
 }
+
+.navbar.secondary .pill {
+  background-color: var(--black);
+}
+
+
 
 /* Grid: logo | pill | cta */
 .nav_container {
@@ -53,6 +55,10 @@
   color: var(--black);
 }
 
+.secondary .logo_text {
+  color: var(--black);
+}
+
 /* ── Pill ── */
 .pill {
   background: rgba(255, 255, 255, 0.12);
@@ -62,10 +68,16 @@
   padding: 0.65rem 10px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+  height: 40px;
+  /* background: var(--primary_green); */
 }
 
 .scrolled .pill {
   background: rgba(0, 0, 0, 0.04);
+}
+
+.secondary .pill {
+  background: rgba(0, 0, 0, 0.04);  
 }
 
 .nav_links {
@@ -78,8 +90,8 @@
 }
 
 .nav_link {
-  font-size: 14px;
-  text-transform: uppercase;
+  font-size: var(--fs_small);
+  text-transform: capitalize;
   font-weight: var(--fw_normal);
   letter-spacing: -0.5px;
   padding: 0.6rem 0.8rem;
@@ -90,7 +102,17 @@
 }
 
 .scrolled .nav_link {
-  color: var(--black);
+  color: var(--white);
+}
+
+.secondary .nav_link {
+  color: var(--white);
+  /* border: 1px solid transparent; */
+}
+
+.secondary .nav_link:hover {
+  background: rgba(0, 0, 0, 0.05);
+  /* border: 1px solid var(--light_grey); */
 }
 
 .nav_link:hover {
@@ -112,6 +134,11 @@
 .scrolled .nav_link.active {
   background: rgba(67, 160, 71, 0.1);
   color: var(--primary_green);
+}
+
+.secondary .nav_link.active {
+  background: var(--light_grey);
+  color: var(--black);
 }
 
 /* ── CTA ── */
@@ -148,6 +175,18 @@
   border-color: var(--primary_green);
   color: var(--white);
 }
+
+.secondary .cta_btn_green {
+  background-color: transparent;
+  color: var(--black);
+  border: 1.5px solid var(--black);
+}
+
+.secondary .cta_btn_green:hover {
+  background-color: var(--black);
+  color: var(--white);
+}
+
 
 .cta_btn_dark {
   background-color: var(--black);

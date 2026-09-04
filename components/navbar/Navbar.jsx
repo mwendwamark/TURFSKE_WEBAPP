@@ -17,12 +17,15 @@ const nav_links = [
 
 export function Navbar({ variant = "primary" }) {
   const [is_drawer_open, set_is_drawer_open] = useState(false);
+  const [is_scrolled, set_is_scrolled] = useState(false);
   const [is_hidden, set_is_hidden] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
     const handle_scroll = () => {
-      set_is_hidden(window.scrollY > 80);
+      const scrolled = window.scrollY > 30;
+      set_is_scrolled(scrolled);
+      set_is_hidden(scrolled);
     };
 
     window.addEventListener("scroll", handle_scroll, { passive: true });
@@ -40,7 +43,9 @@ export function Navbar({ variant = "primary" }) {
 
   const get_navbar_classes = () => {
     const classes = [styles.navbar];
+    if (is_scrolled) classes.push(styles.scrolled);
     if (is_hidden) classes.push(styles.hidden);
+    if (variant === "secondary") classes.push(styles.secondary);
     return classes.join(" ");
   };
 
@@ -57,9 +62,7 @@ export function Navbar({ variant = "primary" }) {
           {/* Logo */}
           <div className={styles.logo}>
             <Link href="/" className={styles.logo_link}>
-              <span className={styles.logo_text}>
-                TURFSKE
-              </span>
+              <span className={styles.logo_text}>TURFSKE</span>
             </Link>
           </div>
 
@@ -81,7 +84,11 @@ export function Navbar({ variant = "primary" }) {
 
           {/* CTA */}
           <div className={styles.cta}>
-            <Button variant="glass" className={styles.cta_btn_green} href="/auth/signup">
+            <Button
+              variant={variant === "secondary" ? "nav_secondary" : "glass"}
+              className={styles.cta_btn_green}
+              href="/auth/signup"
+            >
               Sign up
             </Button>
           </div>
@@ -92,7 +99,10 @@ export function Navbar({ variant = "primary" }) {
             onClick={() => set_is_drawer_open(true)}
             aria-label="Open menu"
           >
-            <Menu size={24} color={variant === "primary" ? "#ffffff" : "#1e1e1e"} />
+            <Menu
+              size={24}
+              color={variant === "primary" ? "#ffffff" : "#1e1e1e"}
+            />
           </button>
         </div>
       </nav>

@@ -232,6 +232,34 @@
   transform: translateX(4px);
 }
 /* ─────────────────────────────────────────────
+   VARIANT: nav_secondary (secondary navbar CTA)
+───────────────────────────────────────────── */
+.nav_secondary {
+  background-color: transparent;
+  color: var(--black);
+  border-color: var(--black);
+}
+
+.nav_secondary .arrow {
+  background-color: var(--black);
+  color: var(--white);
+}
+
+.nav_secondary:hover {
+  background-color: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -14px rgba(30, 30, 30, 0.45);
+}
+
+.nav_secondary:hover .arrow {
+  background-color: var(--white);
+  color: var(--black);
+  transform: translateX(4px);
+}
+
+/* ─────────────────────────────────────────────
    VARIANT: outline  (transparent, green border)
    No arrow by default.
 ───────────────────────────────────────────── */

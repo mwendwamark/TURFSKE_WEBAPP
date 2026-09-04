@@ -18,7 +18,7 @@
   --fs_section_title: 4rem;
   --fs_sub_section_title: 2.8rem;
   --fs_normal: 1rem;
-  --fs_small: 0.875rem;
+  --fs_small: 0.9375rem;
 
   /* FONT WEIGHTS */
   --fw_thick: 700;
@@ -89,6 +89,10 @@ button {
 
 .section {
   padding: 12rem 0;
+}
+
+.section_hero{
+  padding: 10rem 0
 }
 
 .section_small {

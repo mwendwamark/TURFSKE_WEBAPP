@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function BookPage() {
   return (
     <main>
-      <Navbar variant="primary" />
+      <Navbar variant="secondary" />
       <div style={{ padding: "12rem 2rem", textAlign: "center", minHeight: "100vh", backgroundColor: "#fafaf9" }}>
         <h1 style={{ fontSize: "3rem", marginBottom: "1rem", color: "#1e1e1e" }}>Book a Turf in Kenya</h1>
         <p style={{ color: "#555555" }}>Find and reserve your slot at top turfs across Kenya.</p>
