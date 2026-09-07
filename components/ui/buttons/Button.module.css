@@ -43,6 +43,12 @@
   padding-bottom: 1px;
 }
 
+.no_arrow {
+  justify-content: center;
+  padding-left: 28px;
+  padding-right: 28px;
+}
+
 /* ── Arrow circle ── */
 .arrow {
   display: inline-flex;
@@ -204,14 +210,14 @@
   transform: translateX(4px);
 }
 
-.black_outline{
+.black_outline {
   background-color: var(--white);
   color: var(--black);
   border-color: var(--black);
   transform: translateY(-2px);
   box-shadow: 0 10px 22px -14px rgba(30, 30, 30, 0.45);
 }
- 
+
 .black_outline .arrow {
   background-color: var(--black);
   color: var(--white);

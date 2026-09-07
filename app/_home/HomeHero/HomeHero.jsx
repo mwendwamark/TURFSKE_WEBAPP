@@ -88,10 +88,10 @@ export function HomeHero() {
           </div>
 
           <div className={styles.hero_actions}>
-            <Button size="lg" variant="primary" href="/explore">
+            <Button variant="primary" href="/explore">
               Explore Turfs
             </Button>
-            <Button size="lg" variant="secondary" href="/book">
+            <Button variant="secondary" href="/book">
               List Your Turf
             </Button>
           </div>

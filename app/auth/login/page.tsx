@@ -1,15 +1,32 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { Suspense, useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "../actions";
 import styles from "../Auth.module.css";
-import turfImage from "@/assets/home/turf3.webp";
+import turfImage from "@/assets/home/turf2.webp";
 import { signInWithGoogle } from "../actions";
 import { HiMiniArrowLongLeft } from "react-icons/hi2";
 import { FcGoogle } from "react-icons/fc";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
+import Button from "@/components/ui/buttons/Button";
+// Success notice shown when the password-reset flow redirects here with
+// /auth/login?reset=success. Wrapped in Suspense for static generation.
+function ResetSuccessNotice() {
+  const searchParams = useSearchParams();
+
+  if (searchParams.get("reset") !== "success") {
+    return null;
+  }
+
+  return (
+    <div className={`${styles.auth_message} ${styles.auth_message_success}`}>
+      <p>Password updated — please log in.</p>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
@@ -71,6 +88,10 @@ export default function LoginPage() {
             </p>
           </div>
 
+          <Suspense fallback={null}>
+            <ResetSuccessNotice />
+          </Suspense>
+
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.field}>
               <label htmlFor="email">Email</label>
@@ -118,13 +139,14 @@ export default function LoginPage() {
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
-              className={styles.submit_btn}
+              variant="black"
+              arrow={false}
               disabled={isPending}
             >
               {isPending ? "Signing in..." : "Sign in"}
-            </button>
+            </Button>
           </form>
 
           <div className={styles.divider}>or</div>

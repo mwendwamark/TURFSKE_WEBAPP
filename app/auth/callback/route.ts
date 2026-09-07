@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const next = searchParams.get("next");
 
   if (!code) {
     return NextResponse.redirect(`${origin}/auth/error`);
@@ -31,6 +32,12 @@ export async function GET(request: NextRequest) {
   if (error || !session) {
     console.error("Callback error:", error?.message);
     return NextResponse.redirect(`${origin}/auth/error`);
+  }
+
+  // Password-recovery flow — forgotPassword sends users here with
+  // ?next=/auth/reset-password. Only allow internal paths (open-redirect guard).
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    return NextResponse.redirect(`${origin}${next}`);
   }
 
   const user = session.user;

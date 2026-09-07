@@ -2,7 +2,12 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { forgotPassword } from "../actions";
+import Button from "@/components/ui/buttons/Button";
+import styles from "../Auth.module.css";
+import turfImage from "@/assets/home/turf3.webp";
+import { HiMiniArrowLongLeft } from "react-icons/hi2";
 
 export default function ForgotPasswordPage() {
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -10,6 +15,7 @@ export default function ForgotPasswordPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setMessage(null);
     const formData = new FormData(e.currentTarget);
 
     startTransition(async () => {
@@ -20,35 +26,80 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="auth_page">
-      <div className="auth_card">
-        <div className="auth_header">
-          <span className="auth_logo">TURFSKE</span>
-          <h1 className="auth_title">Reset your password</h1>
-          <p className="auth_sub">We&apos;ll send a reset link to your email</p>
+    <div className={styles.page}>
+      {/* ── Left — visual panel ── */}
+      <div className={styles.visual}>
+        <Image
+          src={turfImage}
+          alt="A football turf in Kenya"
+          className={styles.visual_image}
+          priority
+          fill
+          sizes="50vw"
+        />
+        <div className={styles.visual_overlay} />
+
+        <div className={styles.visual_brand}>
+          <Link href="/" className={styles.visual_logo_text}>
+            TURFSKE
+          </Link>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth_form">
-          <div className="auth_field">
-            <label htmlFor="email">Email</label>
-            <input id="email" name="email" type="email" placeholder="you@example.com" required />
+        <div className={styles.visual_content}>
+          <h2 className={styles.visual_tagline}>Forgot your password?</h2>
+          <p className={styles.visual_sub}>
+            No worries — we&apos;ll send you a reset link in seconds.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Right — form panel ── */}
+      <div className={styles.form_panel}>
+        <Link href="/" className={styles.back_btn}>
+          <span className={styles.back_btn_icon}><HiMiniArrowLongLeft size={14}/></span>
+          Back to home
+        </Link>
+
+        <div className={styles.form_inner}>
+          <div className={styles.form_header}>
+            <h1 className={styles.form_title}>Reset your password</h1>
+            <p className={styles.form_sub}>
+              Enter your email and we&apos;ll send a reset link
+            </p>
           </div>
 
-          {message && (
-            <p className={`auth_message auth_message_${message.type}`}>
-              {message.text}
-            </p>
-          )}
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.field}>
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
 
-          <button type="submit" className="auth_submit" disabled={isPending}>
-            {isPending ? "Sending..." : "Send reset link"}
-          </button>
-        </form>
+            {message && (
+              <div className={`${styles.auth_message} ${styles[`auth_message_${message.type}`]}`}>
+                <p>{message.text}</p>
+              </div>
+            )}
 
-        <p className="auth_footer">
-          Remembered it?{" "}
-          <Link href="/auth/login">Back to sign in</Link>
-        </p>
+            <Button
+              type="submit"
+              variant="black"
+              arrow={false}
+              disabled={isPending}
+            >
+              {isPending ? "Sending..." : "Send reset link"}
+            </Button>
+          </form>
+
+          <p className={styles.form_footer}>
+            Remembered it? <Link href="/auth/login">Back to sign in</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

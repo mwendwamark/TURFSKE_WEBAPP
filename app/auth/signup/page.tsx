@@ -5,11 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { signUp } from "../actions";
 import styles from "../Auth.module.css";
-import turfImage from "@/assets/home/turf3.webp";
+import turfImage from "@/assets/home/turf1.webp";
 import { signInWithGoogle } from "../actions";
 import { HiMiniArrowLongLeft } from "react-icons/hi2";
 import { FcGoogle } from "react-icons/fc";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
+import Button from "@/components/ui/buttons/Button";
 
 export default function SignUpPage() {
   const [role, setRole] = useState<"player" | "manager">("player");
@@ -109,6 +110,11 @@ export default function SignUpPage() {
             </button>
           </div>
 
+          <p className={styles.role_notice}>
+            You are signing up as a{" "}
+            <strong>{role === "player" ? "Player" : "Turf Manager"}</strong>
+          </p>
+
           {/* Form */}
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.field}>
@@ -178,15 +184,16 @@ export default function SignUpPage() {
               <Link href="/terms">terms of service</Link>.
             </p>
 
-            <button
+            <Button
               type="submit"
-              className={styles.submit_btn}
+              variant="black"
+              arrow={false}
               disabled={isPending}
             >
               {isPending
                 ? "Creating account..."
                 : `Sign up as ${role === "player" ? "Player" : "Turf Manager"}`}
-            </button>
+            </Button>
           </form>
 
           {/* Divider */}

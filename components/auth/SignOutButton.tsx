@@ -2,17 +2,25 @@
 
 import { useTransition } from "react";
 import { signOut } from "@/app/auth/actions";
+import Button from "@/components/ui/buttons/Button";
 
-export default function SignOutButton() {
+type SignOutButtonProps = {
+  className?: string;
+};
+
+export default function SignOutButton({ className = "" }: SignOutButtonProps) {
   const [isPending, startTransition] = useTransition();
 
   return (
-    <button
-      className="signout_btn"
+    <Button
+      type="button"
+      variant="outline"
+      arrow={false}
+      className={className}
       disabled={isPending}
       onClick={() => startTransition(() => signOut())}
     >
       {isPending ? "Signing out..." : "Sign out"}
-    </button>
+    </Button>
   );
 }

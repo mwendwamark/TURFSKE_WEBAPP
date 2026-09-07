@@ -26,6 +26,17 @@
   align-items: center;
 }
 
+.auth_logo {
+  color: var(--black);
+  font-size: var(--fs_normal);
+  font-weight: var(--fw_thick);
+  text-transform: uppercase;
+}
+
+.signout_btn {
+  flex-shrink: 0;
+}
+
 .dashboard_welcome {
   display: flex;
   flex-direction: column;

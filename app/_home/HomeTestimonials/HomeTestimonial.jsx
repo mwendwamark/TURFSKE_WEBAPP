@@ -3,7 +3,7 @@
 import React, { useRef } from "react";
 import SmallHeader from "@/components/ui/smallHeader/SmallHeader";
 import styles from "./HomeTestimonial.module.css";
-import { TbPlayerPlayFilled, TbArrowLeft, TbArrowRight } from "react-icons/tb";
+import { TbArrowLeft, TbArrowRight } from "react-icons/tb";
 import Img1 from "../../../assets/home/user1.webp";
 import Img2 from "../../../assets/home/user2.webp";
 import Img3 from "../../../assets/home/user3.webp";

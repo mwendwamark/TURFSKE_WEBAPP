@@ -33,8 +33,8 @@ export default async function DashboardPage() {
 
         {/* Header */}
         <div className={styles.dashboard_header}>
-          <span className="auth_logo">TURFSKE</span>
-          <SignOutButton />
+          <span className={styles.auth_logo}>TURFSKE</span>
+          <SignOutButton className={styles.signout_btn} />
         </div>
 
         {/* Welcome */}

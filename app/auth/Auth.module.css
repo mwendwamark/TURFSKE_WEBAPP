@@ -186,6 +186,17 @@
   border: 1.5px solid #d8d8d8;
 }
 
+.role_notice {
+  font-size: 0.85rem;
+  color: var(--grey);
+  margin-top: -0.4rem;
+}
+
+.role_notice strong {
+  color: var(--primary_green);
+  font-weight: var(--fw_medium);
+}
+
 /* ── Form fields ── */
 .form {
   display: flex;
@@ -282,7 +293,7 @@
   border: none;
   border-radius: 88px;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: var(--fw_normal);
   cursor: pointer;
   margin-top: 0.25rem;
   transition: background 0.2s ease;
@@ -412,6 +423,22 @@
   text-decoration: underline;
   text-underline-offset: 2px;
   color: inherit;
+}
+
+.auth_message {
+  font-size: 0.875rem;
+  border-radius: 8px;
+  padding: 0.65rem 0.875rem;
+}
+
+.auth_message_error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.auth_message_success {
+  background: #f0fdf4;
+  color: var(--primary_green);
 }
 
 /* ─────────────────────────────────────────────

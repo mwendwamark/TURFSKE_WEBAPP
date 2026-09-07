@@ -61,27 +61,6 @@ const PLANS = [
   },
 ];
 
-// Cascading comparison rows for the "Key Features" table.
-// minTier: 0 = included from Explorer up, 1 = Pro Manager up, 2 = Fleet only
-const FEATURES = [
-  { label: "Browse turfs across Kenya", minTier: 0 },
-  { label: "Real-time slot availability", minTier: 0 },
-  { label: "Send reservation requests", minTier: 0 },
-  { label: "Connect with managers on WhatsApp", minTier: 0 },
-  { label: "Search by location, size & format", minTier: 0 },
-  { label: "List venues with unlimited photos", minTier: 1 },
-  { label: "Manage bookings & slots in one dashboard", minTier: 1 },
-  { label: "Instant booking request notifications", minTier: 1 },
-  { label: "Set your own pricing & availability", minTier: 1 },
-  { label: "Customer reviews & reputation", minTier: 1 },
-  { label: "Priority support", minTier: 1 },
-  { label: "Unlimited venues under one account", minTier: 2 },
-  { label: "Advanced analytics & revenue reports", minTier: 2 },
-  { label: "Custom branding for your venues", minTier: 2 },
-  { label: "Team member access & roles", minTier: 2 },
-  { label: "Dedicated account manager", minTier: 2 },
-];
-
 export default function HomePricing() {
   const [billing, setBilling] = useState("yearly");
   const pricingRef = useRef(null);

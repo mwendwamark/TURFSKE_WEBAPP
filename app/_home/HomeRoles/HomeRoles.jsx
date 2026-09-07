@@ -146,10 +146,10 @@ export default function HomeRoles() {
             </div>
 
             <div className={styles.ctas}>
-              <Button size="lg" variant="black_outline" href="/explore">
+              <Button variant="black_outline" href="/explore">
                 {content.cta.primary}
               </Button>
-              {/* <Button size="lg" variant="secondary" href="/book">
+              {/* <Button variant="secondary" href="/book">
                 {content.cta.secondary}
               </Button> */}
             </div>

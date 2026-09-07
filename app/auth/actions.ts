@@ -133,7 +133,7 @@ export async function signIn(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -149,7 +149,7 @@ export async function signIn(formData: FormData) {
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/");
+  redirect("/auth/signup");
 }
 
 // ── Forgot Password — sends reset email
@@ -159,7 +159,7 @@ export async function forgotPassword(formData: FormData) {
   const email = formData.get("email") as string;
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/auth/reset-password`,
   });
 
   if (error) {
@@ -181,5 +181,9 @@ export async function resetPassword(formData: FormData) {
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  // End the recovery-flow session — the user must sign in explicitly
+  // with their new password before reaching the dashboard.
+  await supabase.auth.signOut();
+
+  redirect("/auth/login?reset=success");
 }

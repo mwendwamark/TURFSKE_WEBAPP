@@ -3,17 +3,33 @@ import Link from "next/link";
 import styles from "./Button.module.css";
 import { ArrowUpRight } from "lucide-react";
 
-export interface ButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  variant?: "primary" | "secondary" | "white" | "glass" | "outline" | "black" | "black_outline" | "nav_secondary";
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "white"
+  | "glass"
+  | "outline"
+  | "black"
+  | "black_outline"
+  | "nav_secondary";
+
+type BaseButtonProps = {
+  variant?: ButtonVariant;
   href?: string;
   arrow?: boolean;
   className?: string;
   children: React.ReactNode;
-}
+};
+
+export type ButtonProps = BaseButtonProps &
+  (
+    | React.AnchorHTMLAttributes<HTMLAnchorElement>
+    | React.ButtonHTMLAttributes<HTMLButtonElement>
+  );
 
 export default function Button({
   variant = "primary",
-  href = "/",
+  href,
   arrow,
   className = "",
   children,
@@ -22,29 +38,41 @@ export default function Button({
   const showArrow =
     arrow !== undefined ? arrow : variant !== "outline";
 
-  const classes = [styles.btn, styles[variant], className]
+  const classes = [
+    styles.btn,
+    styles[variant],
+    !showArrow ? styles.no_arrow : "",
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
 
-  return (
-    <Link href={href} className={classes} {...rest}>
+  const content = (
+    <>
       <span className={styles.label}>{children}</span>
       {showArrow && (
         <span className={styles.arrow} aria-hidden="true">
-          {/* <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M5 12h14" />
-            <path d="M13 6l6 6-6 6" />
-          </svg> */}
-          <ArrowUpRight/>
+          <ArrowUpRight />
         </span>
       )}
+    </>
+  );
+
+  if (!href) {
+    const buttonProps = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+    return (
+      <button className={classes} {...buttonProps}>
+        {content}
+      </button>
+    );
+  }
+
+  const anchorProps = rest as React.AnchorHTMLAttributes<HTMLAnchorElement>;
+
+  return (
+    <Link href={href} className={classes} {...anchorProps}>
+      {content}
     </Link>
   );
 }
