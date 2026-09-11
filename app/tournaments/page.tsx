@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Turf Tournaments in Kenya",
   description:
     "Join or host turf tournaments in Kenya. Discover local football competitions, leagues, and events near you.",
+  robots: { index: false },
   openGraph: {
     title: "Turf Tournaments in Kenya | TurfsKE",
     description:

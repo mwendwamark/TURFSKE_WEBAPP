@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Book a Turf in Kenya",
   description:
     "Find and book a turf in Kenya. Browse available football pitches, compare facilities, and reserve your slot in seconds.",
+  robots: { index: false },
   openGraph: {
     title: "Book a Turf in Kenya | TurfsKE",
     description:

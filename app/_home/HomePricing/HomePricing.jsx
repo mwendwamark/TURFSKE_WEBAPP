@@ -123,7 +123,7 @@ export default function HomePricing() {
         {/* Intro copy + billing toggle (left) / plan cards (right) */}
         <div className={styles.topRow}>
           <div className={styles.intro}>
-            <h2 className={`sub_section_title`}>Your Turf Booking Toolkit</h2>
+            <h3 className={`sub_section_title`}>Your Turf Booking Toolkit</h3>
             <p className={styles.sub}>
               Start free as a player, or grow your turf revenue with plans built
               for managers. No hidden fees — cancel anytime.
@@ -171,7 +171,7 @@ export default function HomePricing() {
                       <plan.Icon className={styles.icon} aria-hidden="true" />
                     </span>
                     <div>
-                      <h4 className={styles.planName}>{plan.name}</h4>
+                      <h3 className={styles.planName}>{plan.name}</h3>
                       <p className={styles.planAudience}>{plan.audience}</p>
                     </div>
                   </div>

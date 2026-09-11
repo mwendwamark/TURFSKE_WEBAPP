@@ -4,6 +4,11 @@ import { createClient } from "@/utils/supabase/server";
 import SignOutButton from "@/components/auth/SignOutButton";
 import RoleNoticeBanner from "@/components/auth/RoleNoticeBanner";
 import styles from "./Dashboard.module.css";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardPage({
   searchParams,

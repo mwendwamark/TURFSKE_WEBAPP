@@ -36,7 +36,7 @@ export function HomeHero() {
       <div className={styles.hero_bg}>
         <Image
           src={heroImg}
-          alt=""
+          alt="A football turf pitch in Kenya ready for players to book through TurfsKE"
           fill
           // preload
           // fetchPriority="high"
@@ -89,7 +89,7 @@ export function HomeHero() {
 
           <div className={styles.hero_actions}>
             <Button variant="primary" href="/explore">
-              Explore Turfs
+              Browse Turfs in Kenya
             </Button>
             <Button variant="secondary" href="/book">
               List Your Turf

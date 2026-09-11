@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "Learn about TurfsKE — Kenya's #1 platform for finding and booking quality turfs. We connect players with sports facilities across the country.",
+  robots: { index: false },
   openGraph: {
     title: "About TurfsKE",
     description:

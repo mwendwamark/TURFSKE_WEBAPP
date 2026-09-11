@@ -4,13 +4,13 @@ import Navbar from "@/components/navbar/Navbar";
 import Explore from "./Explore";
 
 export const metadata: Metadata = {
-  title: "Explore Turfs in Kenya",
+  title: "Browse Football Turfs in Kenya",
   description:
-    "Explore the best turfs in Kenya. Compare football pitches by location, surface type, and price. Find the perfect pitch near you.",
+    "Browse and compare football turfs across Kenya. Filter by location, pitch size, surface type, and price. Find available slots near you on TurfsKE.",
   openGraph: {
-    title: "Explore Turfs in Kenya | TurfsKE",
+    title: "Browse Football Turfs in Kenya | TurfsKE",
     description:
-      "Explore the best turfs in Kenya. Compare football pitches by location, surface type, and price.",
+      "Browse and compare football turfs across Kenya. Filter by location, pitch size, surface type, and price.",
   },
 };
 

@@ -13,9 +13,31 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "TurfsKE",
+  url: "https://turfske.co.ke",
+  description:
+    "TurfsKE is Kenya's turf booking platform, connecting players with quality football pitches across the country.",
+  email: "hello@turfske.com",
+  sameAs: [
+    "https://facebook.com",
+    "https://instagram.com",
+    "https://x.com",
+    "https://youtube.com",
+  ],
+};
+
 const page = () => {
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <Home />
       <Footer/>
     </main>

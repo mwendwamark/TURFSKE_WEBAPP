@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://turfske.co.ke";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://turfske.co.ke";
 
   return [
     {
