@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/_next/"],
       },
     ],
-    sitemap: "https://turfske.vercel.app/sitemap.xml",
+    sitemap: "https://turfske.co.ke/sitemap.xml",
   };
 }

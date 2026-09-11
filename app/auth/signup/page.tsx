@@ -123,7 +123,7 @@ export default function SignUpPage() {
                 id="full_name"
                 name="full_name"
                 type="text"
-                placeholder="Mark Nthei"
+                placeholder="John Doe"
                 required
               />
             </div>
@@ -202,6 +202,7 @@ export default function SignUpPage() {
           {/* OAuth */}
           <div className={styles.oauth_group}>
             <form action={signInWithGoogle}>
+              <input type="hidden" name="intended_role" value={role} />
               <button type="submit" className={styles.oauth_btn}>
                 <FcGoogle className={styles.oauth_icon} />
                   

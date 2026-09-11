@@ -2,9 +2,14 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import SignOutButton from "@/components/auth/SignOutButton";
+import RoleNoticeBanner from "@/components/auth/RoleNoticeBanner";
 import styles from "./Dashboard.module.css";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
@@ -27,9 +32,17 @@ export default async function DashboardPage() {
   const role      = profile?.role ?? "player";
   const fullName  = profile?.full_name ?? user.email;
 
+  // Sent by /auth/callback when a Google signup tried to use a role that
+  // conflicts with the account's existing profile role.
+  const { role_notice } = await searchParams;
+  const roleNotice =
+    typeof role_notice === "string" ? role_notice : undefined;
+
   return (
     <div className={styles.dashboard_page}>
       <div className={styles.dashboard_card}>
+
+        {roleNotice && <RoleNoticeBanner notice={roleNotice} />}
 
         {/* Header */}
         <div className={styles.dashboard_header}>

@@ -1,11 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
+import { isProfileRole, upsertProfile } from "@/utils/auth/profile";
 
 export async function POST(request: NextRequest) {
   const { role } = await request.json();
 
-  if (!role || !["player", "manager"].includes(role)) {
+  if (!isProfileRole(role)) {
     return NextResponse.json({ error: "Invalid role." }, { status: 400 });
   }
 
@@ -34,13 +35,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Upsert the profile with the chosen role
-  const { error } = await supabase
-    .from("profiles")
-    .upsert({
-      id:        user.id,
-      role,
-      full_name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "",
-    });
+  const { error } = await upsertProfile(supabase, user.id, role, user);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

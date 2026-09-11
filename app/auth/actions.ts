@@ -3,6 +3,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { isProfileRole } from "@/utils/auth/profile";
 
 async function createClient() {
   const cookieStore = await cookies();
@@ -24,42 +25,27 @@ async function createClient() {
   );
 }
 
-// ── Sign Up
-// export async function signUp(formData: FormData) {
-//   const supabase = await createClient();
-
-//   const email = formData.get("email") as string;
-//   const password = formData.get("password") as string;
-//   const fullName = formData.get("full_name") as string;
-//   const role = formData.get("role") as "player" | "manager";
-
-//   const { error } = await supabase.auth.signUp({
-//     email,
-//     password,
-//     options: {
-//       data: {
-//         full_name: fullName,
-//         role,
-//       },
-//       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-//     },
-//   });
-
-//   if (error) {
-//     return { error: error.message };
-//   }
-
-//   return { success: "Check your email to confirm your account." };
-// }
-
 // ── Sign in with Google
-export async function signInWithGoogle(): Promise<void> {
+// Server actions passed to <form action> receive the form's FormData, so the
+// signup page can carry its selected role through as a hidden input. The login
+// page's Google button submits no intended_role — logging in never implies
+// choosing a new role.
+export async function signInWithGoogle(formData?: FormData): Promise<void> {
   const supabase = await createClient();
+
+  const intendedRole = formData?.get("intended_role");
+  const role = isProfileRole(intendedRole) ? intendedRole : null;
+
+  // Carry the chosen role through the OAuth redirect so the callback knows the
+  // user's intent (e.g. /auth/callback?intended_role=player).
+  const callbackUrl = role
+    ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?intended_role=${role}`
+    : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      redirectTo: callbackUrl,
       queryParams: {
         access_type: "offline",
         prompt: "consent",
@@ -67,14 +53,14 @@ export async function signInWithGoogle(): Promise<void> {
     },
   });
 
-  if (error) {
-    throw new Error(error.message);
+  if (error || !data.url) {
+    // OAuth failed or produced no URL — send them to the error page instead
+    // of surfacing an unhandled exception.
+    redirect("/auth/error");
   }
 
   // data.url is the Google OAuth URL — redirect the user there
-  if (data.url) {
-    redirect(data.url);
-  }
+  redirect(data.url);
 }
 
 export async function signUp(formData: FormData) {

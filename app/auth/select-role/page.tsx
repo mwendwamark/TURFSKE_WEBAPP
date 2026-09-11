@@ -4,6 +4,9 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../Auth.module.css";
 import roleStyles from "./SelectRole.module.css";
+import Image from "next/image";
+import turfImage from "@/assets/home/turf1.webp";
+import { TbSoccerField, TbPlayFootball } from "react-icons/tb";
 
 export default function SelectRolePage() {
   const [role, setRole]              = useState<"player" | "manager" | null>(null);
@@ -39,6 +42,14 @@ export default function SelectRolePage() {
 
       {/* Left panel — same visual as login/signup */}
       <div className={styles.visual}>
+        <Image
+          src={turfImage}
+          alt="A football turf in Kenya"
+          className={styles.visual_image}
+          priority
+          fill
+          sizes="50vw"
+        />
         <div className={styles.visual_overlay} />
         <div className={styles.visual_brand}>
           <span className={styles.visual_logo_text}>TURFSKE</span>
@@ -72,7 +83,7 @@ export default function SelectRolePage() {
               className={`${roleStyles.role_card} ${role === "player" ? roleStyles.role_card_active : ""}`}
               onClick={() => { setRole("player"); setError(null); }}
             >
-              <span className={roleStyles.role_icon}>🏃</span>
+              <span className={roleStyles.role_icon}><TbPlayFootball/></span>
               <div className={roleStyles.role_text}>
                 <strong>I am a Player</strong>
                 <span>Find and book football pitches near me</span>
@@ -87,7 +98,7 @@ export default function SelectRolePage() {
               className={`${roleStyles.role_card} ${role === "manager" ? roleStyles.role_card_active : ""}`}
               onClick={() => { setRole("manager"); setError(null); }}
             >
-              <span className={roleStyles.role_icon}>🏟️</span>
+              <span className={roleStyles.role_icon}><TbSoccerField/></span>
               <div className={roleStyles.role_text}>
                 <strong>I am a Turf Manager</strong>
                 <span>List my venue and manage bookings</span>

@@ -8,7 +8,7 @@ const googleSansFlex = Google_Sans_Flex({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://turfske.vercel.app"),
+  metadataBase: new URL("https://turfske.co.ke"),
   title: {
     default: "TurfsKE — Find & Book the Best Turfs in Kenya",
     template: "%s | TurfsKE",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     title: "TurfsKE — Find & Book Turfs in Kenya",
     description:
       "The easiest way to find and book turfs across Kenya. Browse pitches, compare facilities, and reserve your slot.",
-    url: "https://turfske.vercel.app",
+    url: "https://turfske.co.ke",
     siteName: "TurfsKE",
     locale: "en_KE",
     type: "website",
