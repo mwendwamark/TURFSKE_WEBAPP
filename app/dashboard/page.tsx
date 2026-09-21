@@ -1,16 +1,13 @@
-import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import SignOutButton from "@/components/auth/SignOutButton";
+import Button from "@/components/ui/buttons/Button";
 import RoleNoticeBanner from "@/components/auth/RoleNoticeBanner";
-import styles from "./Dashboard.module.css";
-import type { Metadata } from "next";
+import ManagerOverview from "./ManagerOverview";
+import type { Amenity, PayoutStatus, VenueWithRelations } from "./types";
+import styles from "./Overview.module.css";
 
-export const metadata: Metadata = {
-  robots: { index: false, follow: false },
-};
-
-export default async function DashboardPage({
+export default async function OverviewPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -22,85 +19,114 @@ export default async function DashboardPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If somehow someone reaches here without a session, send them to login
   if (!user) {
     redirect("/auth/login");
   }
 
-  // Fetch profile to get role
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, full_name")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  const role      = profile?.role ?? "player";
-  const fullName  = profile?.full_name ?? user.email;
+  const role = profile?.role ?? "player";
+  const fullName = profile?.full_name || user.email || "Player";
 
-  // Sent by /auth/callback when a Google signup tried to use a role that
-  // conflicts with the account's existing profile role.
   const { role_notice } = await searchParams;
-  const roleNotice =
-    typeof role_notice === "string" ? role_notice : undefined;
+  const roleNotice = typeof role_notice === "string" ? role_notice : undefined;
 
+  // ── Manager overview ──
+  if (role === "manager") {
+    const [venueResult, amenitiesResult, managerProfileResult] = await Promise.all([
+      supabase
+        .from("venues")
+        .select(
+          "id, name, address_text, latitude, longitude, venue_images(id, venue_id, storage_path, position), pitches(id, venue_id, name, sport_type, size, price_per_hour, surface_type, status, pitch_images(id, pitch_id, storage_path, position)), venue_amenities(amenity_id)",
+        )
+        .eq("manager_id", user.id)
+        .order("created_at", { ascending: false }),
+      supabase.from("amenities").select("id, name").order("name"),
+      supabase
+        .from("manager_profiles")
+        .select("business_name, paystack_subaccount_code, verified")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
+
+    const venues = (venueResult.data ?? []) as VenueWithRelations[];
+    const amenities = (amenitiesResult.data ?? []) as Amenity[];
+    const payout: PayoutStatus = {
+      businessName: managerProfileResult.data?.business_name ?? null,
+      paystackSubaccountCode: managerProfileResult.data?.paystack_subaccount_code ?? null,
+      verified: managerProfileResult.data?.verified ?? null,
+    };
+
+    return (
+      <ManagerOverview
+        venues={venues}
+        amenities={amenities}
+        payout={payout}
+        fullName={fullName}
+        roleNotice={roleNotice}
+      />
+    );
+  }
+
+  // ── Admin overview ──
+  if (role === "admin") {
+    const [managersRes, playersRes, venuesRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "manager"),
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "player"),
+      supabase.from("venues").select("id", { count: "exact", head: true }),
+    ]);
+
+    return (
+      <div className={styles.overview}>
+        <div className={styles.page_head}>
+          <div>
+            <h2 className={styles.page_title}>Welcome, {fullName}</h2>
+            <p className={styles.page_sub}>Platform overview at a glance.</p>
+          </div>
+        </div>
+
+        <div className={styles.stat_grid}>
+          <div className={styles.stat_card}>
+            <span className={styles.stat_value}>{managersRes.count ?? 0}</span>
+            <span className={styles.stat_label}>Turf managers</span>
+          </div>
+          <div className={styles.stat_card}>
+            <span className={styles.stat_value}>{playersRes.count ?? 0}</span>
+            <span className={styles.stat_label}>Players</span>
+          </div>
+          <div className={styles.stat_card}>
+            <span className={styles.stat_value}>{venuesRes.count ?? 0}</span>
+            <span className={styles.stat_label}>Venues listed</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Player overview ──
   return (
-    <div className={styles.dashboard_page}>
-      <div className={styles.dashboard_card}>
+    <div className={styles.overview}>
+      {roleNotice && <RoleNoticeBanner notice={roleNotice} />}
 
-        {roleNotice && <RoleNoticeBanner notice={roleNotice} />}
-
-        {/* Header */}
-        <div className={styles.dashboard_header}>
-          <span className={styles.auth_logo}>TURFSKE</span>
-          <SignOutButton className={styles.signout_btn} />
-        </div>
-
-        {/* Welcome */}
-        <div className={styles.dashboard_welcome}>
-          <p className={styles.dashboard_role_badge}>
-            {role === "manager" ? "🏟️ Turf Manager" : "🏃 Player"}
-          </p>
-          <h1 className={styles.dashboard_title}>Welcome, {fullName}</h1>
-          <p className={styles.dashboard_sub}>
-            You are signed in as <strong>{user.email}</strong>
-          </p>
-        </div>
-
-        {/* Info tiles */}
-        <div className={styles.dashboard_tiles}>
-          <div className={styles.dashboard_tile}>
-            <span className={styles.dashboard_tile_label}>Account ID</span>
-            <span className={styles.dashboard_tile_value}>{user.id.slice(0, 8)}...</span>
-          </div>
-          <div className={styles.dashboard_tile}>
-            <span className={styles.dashboard_tile_label}>Role</span>
-            <span className={styles.dashboard_tile_value} style={{ textTransform: "capitalize" }}>
-              {role}
-            </span>
-          </div>
-          <div className={styles.dashboard_tile}>
-            <span className={styles.dashboard_tile_label}>Email confirmed</span>
-            <span className={styles.dashboard_tile_value}>
-              {user.email_confirmed_at ? "✅ Yes" : "⏳ Pending"}
-            </span>
-          </div>
-          <div className={styles.dashboard_tile}>
-            <span className={styles.dashboard_tile_label}>Joined</span>
-            <span className={styles.dashboard_tile_value}>
-              {new Date(user.created_at).toLocaleDateString("en-KE", {
-                day:   "numeric",
-                month: "short",
-                year:  "numeric",
-              })}
-            </span>
-          </div>
-        </div>
-
-        <p className={styles.dashboard_note}>
-          This is a temporary dashboard. The full{" "}
-          {role === "manager" ? "manager" : "player"} experience is coming soon.
+      <div className={styles.welcome_card}>
+        <h2 className={styles.welcome_title}>Welcome, {fullName}</h2>
+        <p className={styles.welcome_text}>
+          Find football pitches near you and book them in minutes. Booking is
+          coming soon — for now, browse the pitches available on TurfsKE.
         </p>
-
+        <div>
+          <Button href="/explore">Browse pitches</Button>
+        </div>
       </div>
     </div>
   );

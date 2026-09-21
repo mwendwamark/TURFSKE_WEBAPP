@@ -89,7 +89,7 @@ export function HomeHero() {
 
           <div className={styles.hero_actions}>
             <Button variant="primary" href="/explore">
-              Browse Turfs in Kenya
+              Browse Turfs
             </Button>
             <Button variant="secondary" href="/book">
               List Your Turf

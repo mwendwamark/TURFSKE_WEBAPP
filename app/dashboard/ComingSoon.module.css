@@ -1,0 +1,25 @@
+.card {
+  background: var(--white);
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  max-width: 640px;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+  letter-spacing: -0.3px;
+}
+
+.description {
+  font-size: 0.92rem;
+  color: var(--grey);
+  line-height: 1.55;
+  max-width: 52ch;
+}
