@@ -4,13 +4,22 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2, CheckCircle2, Circle, LayoutGrid, Wallet } from "lucide-react";
+import {
+  Building2,
+  CheckCircle2,
+  Circle,
+  LayoutGrid,
+  PlusCircle,
+  Wallet,
+} from "lucide-react";
 import Button from "@/components/ui/buttons/Button";
 import RoleNoticeBanner from "@/components/auth/RoleNoticeBanner";
 import VenueForm from "./VenueForm";
 import PitchForm from "./PitchForm";
 import type { Amenity, Pitch, PayoutStatus, VenueWithRelations } from "./types";
 import styles from "./Overview.module.css";
+import { TbPlayFootball } from "react-icons/tb";
+import { FaArrowRightLong } from "react-icons/fa6";
 
 type ModalState =
   | { type: "venue"; venue: VenueWithRelations | null }
@@ -36,7 +45,10 @@ export default function ManagerOverview({
   const [modal, setModal] = useState<ModalState>(null);
 
   const venuesCount = venues.length;
-  const pitchesCount = venues.reduce((sum, venue) => sum + venue.pitches.length, 0);
+  const pitchesCount = venues.reduce(
+    (sum, venue) => sum + venue.pitches.length,
+    0,
+  );
   const payoutActive = payout.paystackSubaccountCode != null;
 
   const checklistItems = [
@@ -91,17 +103,22 @@ export default function ManagerOverview({
         <div className={styles.stat_row}>
           <div className={styles.stat_card_accent}>
             <span className={styles.stat_icon_accent} aria-hidden="true">
-              <Building2 size={20} />
+              <Building2 size={40} />
             </span>
             <span className={styles.stat_value_accent}>{venuesCount}</span>
             <span className={styles.stat_label_accent}>
               {venuesCount === 1 ? "Venue" : "Venues"}
             </span>
+            <Building2
+              className={styles.deco_icon}
+              size={96}
+              aria-hidden="true"
+            />
           </div>
 
           <div className={styles.stat_card}>
             <span className={styles.stat_icon} aria-hidden="true">
-              <LayoutGrid size={20} />
+              <LayoutGrid size={40} />
             </span>
             <span className={styles.stat_value}>{pitchesCount}</span>
             <span className={styles.stat_label}>
@@ -114,12 +131,14 @@ export default function ManagerOverview({
             className={`${styles.stat_card} ${styles.stat_card_link}`}
           >
             <span className={styles.stat_icon} aria-hidden="true">
-              <Wallet size={20} />
+              <Wallet size={40} />
             </span>
             <span className={styles.stat_status}>
               <span
                 className={`${styles.status_dot} ${
-                  payoutActive ? styles.status_dot_active : styles.status_dot_pending
+                  payoutActive
+                    ? styles.status_dot_active
+                    : styles.status_dot_pending
                 }`}
                 aria-hidden="true"
               />
@@ -140,11 +159,13 @@ export default function ManagerOverview({
             onClick={() => setModal({ type: "venue", venue: null })}
           >
             <span className={styles.quick_icon} aria-hidden="true">
-              <Building2 size={18} />
+              <Building2 size={40} />
             </span>
             <span className={styles.quick_text}>
               <span className={styles.quick_title}>Add a venue</span>
-              <span className={styles.quick_sub}>List your turf so players can find it</span>
+              <span className={styles.quick_sub}>
+                List your turf so players can find it
+              </span>
             </span>
           </button>
 
@@ -156,7 +177,7 @@ export default function ManagerOverview({
             title={venues.length === 0 ? "Add a venue first" : undefined}
           >
             <span className={styles.quick_icon} aria-hidden="true">
-              <LayoutGrid size={18} />
+              <PlusCircle size={40} />
             </span>
             <span className={styles.quick_text}>
               <span className={styles.quick_title}>Add a pitch</span>
@@ -171,7 +192,9 @@ export default function ManagerOverview({
               </span>
               <span className={styles.quick_text}>
                 <span className={styles.quick_title}>Set up payouts</span>
-                <span className={styles.quick_sub}>Receive money from player bookings</span>
+                <span className={styles.quick_sub}>
+                  Receive money from player bookings
+                </span>
               </span>
             </Link>
           )}
@@ -187,7 +210,9 @@ export default function ManagerOverview({
                   <li
                     key={item.label}
                     className={`${styles.checklist_item} ${
-                      item.done ? styles.checklist_item_done : styles.checklist_item_pending
+                      item.done
+                        ? styles.checklist_item_done
+                        : styles.checklist_item_pending
                     }`}
                   >
                     {item.done ? (
@@ -229,12 +254,14 @@ export default function ManagerOverview({
                 venues.map((venue) => (
                   <div key={venue.id} className={styles.recent_row}>
                     <span className={styles.recent_icon} aria-hidden="true">
-                      <Building2 size={18} />
+                      <TbPlayFootball size={40} />
                     </span>
                     <div className={styles.recent_info}>
                       <p className={styles.recent_name}>{venue.name}</p>
                       {venue.address_text && (
-                        <p className={styles.recent_address}>{venue.address_text}</p>
+                        <p className={styles.recent_address}>
+                          {venue.address_text}
+                        </p>
                       )}
                     </div>
                     <span className={styles.pitch_pill}>
@@ -244,8 +271,14 @@ export default function ManagerOverview({
                           ? "1 pitch"
                           : `${venue.pitches.length} pitches`}
                     </span>
-                    <Link href="/dashboard/venues" className={styles.recent_manage}>
-                      Manage →
+                    <Link
+                      href="/dashboard/venues"
+                      className={styles.recent_manage}
+                    >
+                      <p>Manage </p>
+                      <div>
+                        <FaArrowRightLong size={14} />{" "}
+                      </div>
                     </Link>
                   </div>
                 ))

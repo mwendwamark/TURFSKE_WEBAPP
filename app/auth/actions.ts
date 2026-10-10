@@ -3,7 +3,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { isProfileRole } from "@/utils/auth/profile";
+import { isProfileRole, upsertProfile } from "@/utils/auth/profile";
 
 async function createClient() {
   const cookieStore = await cookies();
@@ -36,16 +36,30 @@ export async function signInWithGoogle(formData?: FormData): Promise<void> {
   const intendedRole = formData?.get("intended_role");
   const role = isProfileRole(intendedRole) ? intendedRole : null;
 
-  // Carry the chosen role through the OAuth redirect so the callback knows the
-  // user's intent (e.g. /auth/callback?intended_role=player).
-  const callbackUrl = role
-    ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?intended_role=${role}`
-    : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
+  // Return path carried in from e.g. the venue page's
+  // "Book now" button. Only internal paths are honored
+  // (the callback re-checks this before redirecting).
+  const nextParam = formData?.get("next");
+  const nextPath =
+    typeof nextParam === "string" &&
+    nextParam.startsWith("/") &&
+    !nextParam.startsWith("//")
+      ? nextParam
+      : null;
+
+  // Carry the chosen role (and return path, when present)
+  // through the OAuth redirect so the callback knows the
+  // user's intent (e.g. /auth/callback?intended_role=player&next=/venues/xyz).
+  const callbackUrl = new URL(
+    `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+  );
+  if (role) callbackUrl.searchParams.set("intended_role", role);
+  if (nextPath) callbackUrl.searchParams.set("next", nextPath);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: callbackUrl,
+      redirectTo: callbackUrl.toString(),
       queryParams: {
         access_type: "offline",
         prompt: "consent",
@@ -71,12 +85,34 @@ export async function signUp(formData: FormData) {
   const fullName = formData.get("full_name") as string;
   const role = formData.get("role") as "player" | "manager";
 
+  // Return path carried in from e.g. the venue page's
+  // "Book now" button. Only internal paths are honored —
+  // the callback applies the same open-redirect guard
+  // before redirecting.
+  const nextParam = formData.get("next");
+  const nextPath =
+    typeof nextParam === "string" &&
+    nextParam.startsWith("/") &&
+    !nextParam.startsWith("//")
+      ? nextParam
+      : null;
+
+  // Carry the role + return path through the confirmation
+  // link so the callback can finish the signup (create the
+  // profile) and land the user back where they were headed
+  // instead of the default dashboard.
+  const callbackUrl = new URL(
+    `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+  );
+  callbackUrl.searchParams.set("intended_role", role);
+  if (nextPath) callbackUrl.searchParams.set("next", nextPath);
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { full_name: fullName, role },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      emailRedirectTo: callbackUrl.toString(),
     },
   });
 
@@ -109,6 +145,22 @@ export async function signUp(formData: FormData) {
     };
   }
 
+  // Instant confirmation (no email step) — finish the signup
+  // right here: create the profile with the chosen role and
+  // send them to the page they were headed for.
+  if (data?.user && data.session) {
+    const { error: upsertError } = await upsertProfile(
+      supabase,
+      data.user.id,
+      role,
+      data.user,
+    );
+
+    if (!upsertError) {
+      redirect(nextPath ?? "/dashboard");
+    }
+  }
+
   return { success: "Account created successfully!" };
 }
 
@@ -118,6 +170,7 @@ export async function signIn(formData: FormData) {
 
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const nextParam = formData.get("next") as string;
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -128,7 +181,11 @@ export async function signIn(formData: FormData) {
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  const nextPath =
+    typeof nextParam === "string" && nextParam.startsWith("/") && !nextParam.startsWith("//")
+      ? nextParam
+      : "/dashboard";
+  redirect(nextPath);
 }
 
 // ── Sign Out

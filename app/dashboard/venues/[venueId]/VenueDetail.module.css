@@ -1,0 +1,275 @@
+/* ─────────────────────────────────────────────
+   Venue detail — gallery-first page.
+   No bordered card containers: sections are
+   separated by spacing only (see the Gallery
+   Card Exception in DashboardDesignskill.md).
+───────────────────────────────────────────── */
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  max-width: 1040px;
+}
+
+.back_link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  font-size: 0.85rem;
+  color: var(--grey);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.back_link:hover {
+  color: var(--primary_green);
+}
+
+/* ── Head: name, location, actions ── */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.head_text {
+  min-width: 0;
+}
+
+.title {
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  font-weight: 500;
+  color: var(--black);
+  letter-spacing: -0.4px;
+}
+
+.address {
+  font-size: 0.95rem;
+  color: var(--grey);
+  margin-top: 0.4rem;
+  line-height: 1.5;
+}
+
+.coords {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--grey);
+  margin-top: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.head_actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  /* Stay pinned right when the header wraps onto
+     its own line — space-between alone would
+     left-align a lone wrapped item. */
+  margin-left: auto;
+}
+
+/* ── Sections ── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.section_head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Keep the Add pitch button pinned right when
+   the section head wraps onto its own line. */
+.section_add {
+  margin-left: auto;
+}
+
+.section_title {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--black);
+  letter-spacing: -0.2px;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.section_count {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--grey);
+}
+
+.section_empty {
+  font-size: 0.88rem;
+  color: var(--grey);
+  line-height: 1.55;
+}
+
+/* ── Amenity chips (detail page only) ── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.chip {
+  font-size: 0.78rem;
+  color: var(--primary_green);
+  background: transparent;
+  border: 1px solid var(--primary_green);
+  border-radius: 20px;
+  padding: 0.28rem 0.75rem;
+  line-height: 1;
+}
+
+/* ── Description & rules (detail page only) ── */
+.text_block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.section_text {
+  font-size: 0.88rem;
+  color: var(--grey);
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+/* ── Pitches ── */
+.pitch_list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pitch_row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--off-white);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+}
+
+.pitch_thumb {
+  position: relative;
+  width: 88px;
+  height: 66px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--white);
+  color: var(--grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pitch_thumb_image {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.pitch_info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pitch_name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--black);
+}
+
+.status_badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 20px;
+  padding: 0.15rem 0.55rem;
+  line-height: 1;
+}
+
+.status_active {
+  color: var(--primary_green);
+  border: 1px solid var(--primary_green);
+}
+
+.status_inactive {
+  color: var(--grey);
+  border: 1px solid var(--grey);
+}
+
+.pitch_meta {
+  font-size: 0.8rem;
+  color: var(--grey);
+  margin-top: 0.3rem;
+}
+
+.pitch_actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* ── Confirmation modal content ── */
+.confirm_actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.message {
+  font-size: 0.875rem;
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  line-height: 1.5;
+}
+
+.message_error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+@media (max-width: 700px) {
+  .pitch_row {
+    flex-wrap: wrap;
+  }
+
+  .pitch_info {
+    flex: 1 1 100%;
+  }
+
+  .pitch_actions {
+    width: 100%;
+  }
+}

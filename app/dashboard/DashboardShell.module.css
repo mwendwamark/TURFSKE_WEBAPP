@@ -6,19 +6,24 @@
 
 .shell {
   min-height: 100vh;
-  background-color: var(--off-white);
+  background-color: #f4f4f2;
 }
 
-/* Fixed sidebar for desktop */
+/* Floating sidebar panel — page background shows through as gap */
 .sidebar {
   position: fixed;
-  inset: 0 auto 0 0;
+  top: 1.25rem;
+  left: 1.25rem;
+  bottom: 1.25rem;
   width: 252px;
   background: var(--white);
-  border-right: 1px solid #e0e0e0;
+  border: 1px solid #e0e0e0;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
   z-index: 30;
+  overflow: hidden;
 }
 
 .sidebar_brand {
@@ -30,7 +35,7 @@
   display: inline-flex;
   align-items: center;
   font-size: 1rem;
-  font-weight: var(--fw_thick);
+  font-weight: 500;
   letter-spacing: 0.08em;
   color: var(--black);
   text-transform: uppercase;
@@ -82,7 +87,7 @@
 .nav_item_active:hover {
   background: rgba(27, 82, 40, 0.12);
   color: var(--primary_green);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .nav_icon {
@@ -116,7 +121,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   flex-shrink: 0;
 }
 
@@ -126,7 +131,7 @@
 
 .user_name {
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
   white-space: nowrap;
   overflow: hidden;
@@ -141,9 +146,11 @@
   text-overflow: ellipsis;
 }
 
-/* Main column */
+/* Main column — offset by sidebar width + left inset + gap */
 .main {
-  margin-left: 252px;
+  margin-left: calc(252px + 2.75rem);
+  margin-right: 1.5rem;
+  padding-top: 1.25rem;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -151,10 +158,12 @@
 
 .topbar {
   position: sticky;
-  top: 0;
+  top: 1.25rem;
   z-index: 20;
   background: var(--white);
-  border-bottom: 1px solid #e0e0e0;
+  border: 1px solid #e0e0e0;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
   height: 64px;
   display: flex;
   align-items: center;
@@ -165,7 +174,7 @@
 
 .topbar_title {
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
   letter-spacing: -0.2px;
 }
@@ -173,7 +182,7 @@
 .topbar_brand {
   display: none;
   font-size: 1rem;
-  font-weight: var(--fw_thick);
+  font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--black);
@@ -205,7 +214,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .topbar_name {
@@ -227,9 +236,9 @@
 }
 
 .content {
-  padding: 2rem 1.5rem;
+  padding: 2.25rem 0.5rem 2.5rem;
   width: 100%;
-  max-width: 1200px;
+  max-width: 2000px;
   margin: 0 auto;
 }
 
@@ -282,6 +291,12 @@
 
   .main {
     margin-left: 0;
+    margin-right: 0;
+    padding: 1rem 1rem 2rem;
+  }
+
+  .topbar {
+    top: 1rem;
   }
 
   .menu_button {
@@ -297,6 +312,6 @@
   }
 
   .content {
-    padding: 1.5rem 1rem;
+    padding: 1rem 0 0;
   }
 }

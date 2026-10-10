@@ -26,17 +26,34 @@ type VenueFormProps = {
 
 type GeoMessage = { type: "success" | "error"; text: string };
 
+/** Short labels for the step indicator. Step 3's panel heading
+ *  spells out "Description & Rules" in full. */
+const STEPS = ["Basics", "Location", "Details", "Amenities", "Photos"] as const;
+
 export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueFormProps) {
   const editing = Boolean(venue);
   const router = useRouter();
+
+  // ── Step state ──
+  // All field state lives at the top level, so moving between steps
+  // (back, next, or jumping via the indicator) never clears anything.
+  const [step, setStep] = useState(0);
 
   const [name, setName] = useState(venue?.name ?? "");
   const [addressText, setAddressText] = useState(venue?.address_text ?? "");
   const [latitude, setLatitude] = useState(venue?.latitude != null ? String(venue.latitude) : "");
   const [longitude, setLongitude] = useState(venue?.longitude != null ? String(venue.longitude) : "");
+  const [description, setDescription] = useState(venue?.description ?? "");
+  const [rules, setRules] = useState(venue?.rules ?? "");
   const [selectedAmenityIds, setSelectedAmenityIds] = useState<string[]>(
     venue?.venue_amenities.map((link) => link.amenity_id) ?? [],
   );
+
+  // Custom amenities typed into the "Add a custom amenity" box.
+  // Resolved against the amenities table (case-insensitively) at
+  // submit time — see resolveCustomAmenityIds in ./actions.
+  const [customAmenityInput, setCustomAmenityInput] = useState("");
+  const [customAmenityNames, setCustomAmenityNames] = useState<string[]>([]);
 
   const [geoBannerVisible, setGeoBannerVisible] = useState(!editing);
   const [locating, setLocating] = useState(false);
@@ -62,6 +79,37 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
         ? prev.filter((id) => id !== amenityId)
         : [...prev, amenityId],
     );
+  }
+
+  function addCustomAmenity() {
+    const customName = customAmenityInput.trim();
+    if (!customName) return;
+
+    // Matches an existing catalog amenity (case-insensitively)?
+    // Check that amenity instead of creating a duplicate entry.
+    const catalogMatch = amenities.find(
+      (amenity) => amenity.name.trim().toLowerCase() === customName.toLowerCase(),
+    );
+    if (catalogMatch) {
+      setSelectedAmenityIds((prev) =>
+        prev.includes(catalogMatch.id) ? prev : [...prev, catalogMatch.id],
+      );
+      setCustomAmenityInput("");
+      return;
+    }
+
+    // Already queued as a custom amenity? Ignore the repeat.
+    const alreadyAdded = customAmenityNames.some(
+      (queued) => queued.trim().toLowerCase() === customName.toLowerCase(),
+    );
+    if (!alreadyAdded) {
+      setCustomAmenityNames((prev) => [...prev, customName]);
+    }
+    setCustomAmenityInput("");
+  }
+
+  function removeCustomAmenity(customName: string) {
+    setCustomAmenityNames((prev) => prev.filter((name) => name !== customName));
   }
 
   function dismissBannerManually() {
@@ -142,7 +190,46 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
     }
   }
 
+  /** Validate the current step before advancing. The server actions
+   *  re-validate everything on submit — this is just early feedback. */
+  function goNext() {
+    if (step === 0 && !name.trim()) {
+      setMessage({ type: "error", text: "Please give your venue a name." });
+      return;
+    }
+
+    if (step === 1) {
+      const lat = Number(latitude);
+      const lng = Number(longitude);
+      const coordsValid =
+        latitude.trim() !== "" &&
+        longitude.trim() !== "" &&
+        Number.isFinite(lat) &&
+        Number.isFinite(lng) &&
+        lat >= -90 &&
+        lat <= 90 &&
+        lng >= -180 &&
+        lng <= 180;
+      if (!coordsValid) {
+        setMessage({
+          type: "error",
+          text: "Coordinates look off — lat must be between -90 and 90, long between -180 and 180.",
+        });
+        return;
+      }
+    }
+
+    setMessage(null);
+    setStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    // Guard: if not on the last step, don't save — also covers pressing
+    // Enter in a text input on steps 1-4, which must not save the venue early.
+    if (step < STEPS.length - 1) {
+      event.preventDefault();
+      return;
+    }
     event.preventDefault();
     setMessage(null);
 
@@ -151,7 +238,10 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
       addressText,
       latitude,
       longitude,
+      description,
+      rules,
       amenityIds: selectedAmenityIds,
+      customAmenityNames,
     };
 
     startTransition(async () => {
@@ -273,6 +363,199 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
     </>
   );
 
+  // ── Step panels ──
+  // Rendered one at a time; every field's state is held above, so
+  // switching steps preserves what's already been entered.
+
+  const basicsPanel = (
+    <>
+      <div className={styles.field}>
+        <label htmlFor="venue-name">Venue name</label>
+        <input
+          id="venue-name"
+          name="name"
+          type="text"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="e.g. Kasarani Sports Ground"
+          required
+        />
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="venue-address">Address</label>
+        <input
+          id="venue-address"
+          name="address_text"
+          type="text"
+          value={addressText}
+          onChange={(event) => setAddressText(event.target.value)}
+          placeholder="e.g. Thika Road, next to Kenyatta Stadium"
+        />
+      </div>
+    </>
+  );
+
+  const locationPanel = (
+    <>
+      {geolocationBlock}
+
+      <div className={styles.row_2col}>
+        <div className={styles.field}>
+          <label htmlFor="venue-latitude">Latitude</label>
+          <input
+            id="venue-latitude"
+            name="latitude"
+            type="number"
+            step="any"
+            inputMode="decimal"
+            value={latitude}
+            readOnly={!manualEntry}
+            onChange={(event) => setLatitude(event.target.value)}
+            placeholder="e.g. -1.2189"
+            required
+          />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="venue-longitude">Longitude</label>
+          <input
+            id="venue-longitude"
+            name="longitude"
+            type="number"
+            step="any"
+            inputMode="decimal"
+            value={longitude}
+            readOnly={!manualEntry}
+            onChange={(event) => setLongitude(event.target.value)}
+            placeholder="e.g. 36.8812"
+            required
+          />
+        </div>
+      </div>
+
+      <p className={styles.field_hint}>
+        Coordinates are read-only by default so the location stays accurate — use your
+        current location or switch to manual entry.
+      </p>
+    </>
+  );
+
+  const detailsPanel = (
+    <>
+      <div className={styles.field}>
+        <label htmlFor="venue-description">Description</label>
+        <textarea
+          id="venue-description"
+          name="description"
+          rows={4}
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="What makes your turf worth booking?"
+        />
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="venue-rules">House rules</label>
+        <textarea
+          id="venue-rules"
+          name="rules"
+          rows={4}
+          value={rules}
+          onChange={(event) => setRules(event.target.value)}
+          placeholder="House rules players should know before booking — e.g. no metal studs, arrive 10 minutes early"
+        />
+      </div>
+
+      <p className={styles.field_hint}>
+        Optional — both are shown to players on your venue&apos;s page.
+      </p>
+    </>
+  );
+
+  const amenitiesPanel = (
+    <div className={styles.field}>
+      <label>Amenities</label>
+      <div className={styles.checkbox_list}>
+        {amenities.map((amenity) => (
+          <label key={amenity.id} className={styles.checkbox_item}>
+            <input
+              type="checkbox"
+              checked={selectedAmenityIds.includes(amenity.id)}
+              onChange={() => toggleAmenity(amenity.id)}
+            />
+            {amenity.name}
+          </label>
+        ))}
+        {amenities.length === 0 && (
+          <p className={styles.field_hint}>No amenities available yet.</p>
+        )}
+      </div>
+
+      <div className={styles.custom_amenity_row}>
+        <input
+          id="custom-amenity"
+          type="text"
+          value={customAmenityInput}
+          onChange={(event) => setCustomAmenityInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              addCustomAmenity();
+            }
+          }}
+          placeholder="Add a custom amenity"
+          aria-label="Add a custom amenity"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          arrow={false}
+          onClick={addCustomAmenity}
+          disabled={!customAmenityInput.trim() || isPending}
+        >
+          Add
+        </Button>
+      </div>
+
+      {customAmenityNames.length > 0 && (
+        <div className={styles.custom_amenity_chips}>
+          {customAmenityNames.map((customName) => (
+            <span key={customName} className={styles.custom_amenity_chip}>
+              {customName}
+              <button
+                type="button"
+                className={styles.custom_amenity_remove}
+                onClick={() => removeCustomAmenity(customName)}
+                aria-label={`Remove ${customName}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <p className={styles.field_hint}>
+        Don&apos;t see what you need? Type it above — if it already exists it&apos;ll
+        be matched, otherwise it&apos;s added to the catalog.
+      </p>
+    </div>
+  );
+
+  const photosPanel = (
+    <MediaPicker
+      label="Photos"
+      hint="Add up to a few photos. The first one is the cover. 5MB max per photo."
+      existing={existingImages}
+      onDeleteExisting={handleDeleteExisting}
+      onReorderExisting={handleReorderExisting}
+      onPendingChange={setPendingFiles}
+      disabled={isPending || venueSaved}
+    />
+  );
+
+  const panels = [basicsPanel, locationPanel, detailsPanel, amenitiesPanel, photosPanel];
+
   return (
     <DashboardModal
       title={editing ? "Edit venue" : "Add a venue"}
@@ -284,99 +567,36 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
       onClose={onClose}
     >
       <form className={styles.form} onSubmit={handleSubmit}>
-        {geolocationBlock}
-
-        <div className={styles.field}>
-          <label htmlFor="venue-name">Venue name</label>
-          <input
-            id="venue-name"
-            name="name"
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. Kasarani Sports Ground"
-            required
-          />
-        </div>
-
-        <div className={styles.field}>
-          <label htmlFor="venue-address">Address</label>
-          <input
-            id="venue-address"
-            name="address_text"
-            type="text"
-            value={addressText}
-            onChange={(event) => setAddressText(event.target.value)}
-            placeholder="e.g. Thika Road, next to Kenyatta Stadium"
-          />
-        </div>
-
-        <div className={styles.row_2col}>
-          <div className={styles.field}>
-            <label htmlFor="venue-latitude">Latitude</label>
-            <input
-              id="venue-latitude"
-              name="latitude"
-              type="number"
-              step="any"
-              inputMode="decimal"
-              value={latitude}
-              readOnly={!manualEntry}
-              onChange={(event) => setLatitude(event.target.value)}
-              placeholder="e.g. -1.2189"
-              required
-            />
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="venue-longitude">Longitude</label>
-            <input
-              id="venue-longitude"
-              name="longitude"
-              type="number"
-              step="any"
-              inputMode="decimal"
-              value={longitude}
-              readOnly={!manualEntry}
-              onChange={(event) => setLongitude(event.target.value)}
-              placeholder="e.g. 36.8812"
-              required
-            />
-          </div>
-        </div>
-
-        <p className={styles.field_hint}>
-          Coordinates are read-only by default so the location stays accurate — use your current
-          location or switch to manual entry.
-        </p>
-
-        <MediaPicker
-          label="Photos"
-          hint="Add up to a few photos. The first one is the cover. 5MB max per photo."
-          existing={existingImages}
-          onDeleteExisting={handleDeleteExisting}
-          onReorderExisting={handleReorderExisting}
-          onPendingChange={setPendingFiles}
-          disabled={isPending || venueSaved}
-        />
-
-        <div className={styles.field}>
-          <label>Amenities</label>
-          <div className={styles.checkbox_list}>
-            {amenities.map((amenity) => (
-              <label key={amenity.id} className={styles.checkbox_item}>
-                <input
-                  type="checkbox"
-                  checked={selectedAmenityIds.includes(amenity.id)}
-                  onChange={() => toggleAmenity(amenity.id)}
-                />
-                {amenity.name}
-              </label>
+        {/* Step indicator — click any step to jump to it. All field
+            state is held above, so jumping never loses entered data. */}
+        <div className={styles.steps_indicator}>
+          <p className={styles.steps_text}>
+            Step <strong>{step + 1}</strong> of {STEPS.length} · {STEPS[step]}
+          </p>
+          <div className={styles.steps_dots} role="group" aria-label="Form steps">
+            {STEPS.map((label, index) => (
+              <button
+                key={label}
+                type="button"
+                className={`${styles.step_dot} ${
+                  index === step
+                    ? styles.step_dot_active
+                    : index < step
+                      ? styles.step_dot_done
+                      : ""
+                }`}
+                onClick={() => setStep(index)}
+                title={label}
+                aria-label={`Step ${index + 1}: ${label}`}
+                aria-current={index === step ? "step" : undefined}
+              >
+                {index + 1}
+              </button>
             ))}
-            {amenities.length === 0 && (
-              <p className={styles.field_hint}>No amenities available yet.</p>
-            )}
           </div>
         </div>
+
+        {panels[step]}
 
         {message && (
           <p className={`${styles.form_message} ${styles.form_message_error}`} role="alert">
@@ -385,18 +605,52 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
         )}
 
         <div className={styles.form_actions}>
+          {step > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              arrow={false}
+              onClick={() => {
+                setMessage(null);
+                setStep((prev) => Math.max(prev - 1, 0));
+              }}
+              disabled={isPending}
+            >
+              Back
+            </Button>
+          )}
+          <span className={styles.form_actions_spacer} />
           <Button type="button" variant="outline" arrow={false} onClick={onClose} disabled={isPending}>
             {venueSaved ? "Close" : "Cancel"}
           </Button>
-          <Button type="submit" variant="black" arrow={false} disabled={isPending || venueSaved}>
-            {isPending
-              ? "Saving..."
-              : venueSaved
-                ? "Saved"
-                : editing
-                  ? "Save changes"
-                  : "Add venue"}
-          </Button>
+          {step < STEPS.length - 1 ? (
+            <Button
+              type="button"
+              variant="black"
+              arrow={false}
+              onClick={goNext}
+              disabled={isPending}
+              key={`next-btn-${step}`}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              variant="black"
+              arrow={false}
+              disabled={isPending || venueSaved}
+              key="submit-btn"
+            >
+              {isPending
+                ? "Saving..."
+                : venueSaved
+                  ? "Saved"
+                  : editing
+                    ? "Save changes"
+                    : "Add venue"}
+            </Button>
+          )}
         </div>
       </form>
     </DashboardModal>

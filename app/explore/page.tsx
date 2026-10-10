@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import React from "react";
+import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
 import Navbar from "@/components/navbar/Navbar";
 import Explore from "./Explore";
+import type { Amenity, VenueWithRelations } from "../dashboard/types";
 
 export const metadata: Metadata = {
   title: "Browse Football Turfs in Kenya",
@@ -14,15 +16,31 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ExplorePage() {
+export default async function ExplorePage() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const [venuesResult, amenitiesResult] = await Promise.all([
+    supabase
+      .from("venues")
+      .select(
+        "id, name, address_text, latitude, longitude, venue_images(id, venue_id, storage_path, position), pitches(id, venue_id, name, sport_type, size, price_per_hour, surface_type, status, pitch_images(id, pitch_id, storage_path, position)), venue_amenities(amenity_id, amenities(id, name))",
+      )
+      .order("created_at", { ascending: false }),
+    supabase.from("amenities").select("id, name").order("name"),
+  ]);
+
+  // Only show venues with at least one active pitch — a venue with zero
+  // bookable pitches shouldn't appear to players.
+  const venues = ((venuesResult.data ?? []) as unknown as VenueWithRelations[])
+    .filter((venue) => venue.pitches.some((pitch) => pitch.status === "active"));
+
+  const amenities = (amenitiesResult.data ?? []) as Amenity[];
+
   return (
     <main>
       <Navbar variant="secondary" />
-      {/* <div style={{ padding: "12rem 2rem", textAlign: "center", minHeight: "100vh", backgroundColor: "#fafaf9" }}>
-        <h1 style={{ fontSize: "3rem", marginBottom: "1rem", color: "#1e1e1e" }}>Explore Turfs in Kenya</h1>
-        <p style={{ color: "#555555" }}>Discover and compare quality pitches near you.</p>
-      </div> */}
-      <Explore/>
+      <Explore venues={venues} amenities={amenities} />
     </main>
   );
 }

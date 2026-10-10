@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { use, useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { signUp } from "../actions";
@@ -12,7 +12,22 @@ import { FcGoogle } from "react-icons/fc";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import Button from "@/components/ui/buttons/Button";
 
-export default function SignUpPage() {
+export default function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { next } = use(searchParams);
+
+  // Return path carried in from e.g. the venue page's
+  // "Book now" button (/auth/signup?next=/venues/xyz).
+  // Only internal paths are honored — the auth callback
+  // applies the same open-redirect guard before redirecting.
+  const nextPath =
+    typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
+      ? next
+      : "";
+
   const [role, setRole] = useState<"player" | "manager">("player");
   const [message, setMessage] = useState<{
     type: "error" | "success";
@@ -117,6 +132,9 @@ export default function SignUpPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className={styles.form}>
+            {/* Return path for the post-signup redirect (see signUp). */}
+            <input type="hidden" name="next" value={nextPath} />
+
             <div className={styles.field}>
               <label htmlFor="full_name">Full Name</label>
               <input
@@ -203,6 +221,7 @@ export default function SignUpPage() {
           <div className={styles.oauth_group}>
             <form action={signInWithGoogle}>
               <input type="hidden" name="intended_role" value={role} />
+              <input type="hidden" name="next" value={nextPath} />
               <button type="submit" className={styles.oauth_btn}>
                 <FcGoogle className={styles.oauth_icon} />
                   
@@ -214,7 +233,7 @@ export default function SignUpPage() {
 
           {/* Footer */}
           <p className={styles.form_footer}>
-            Already have an account? <Link href="/auth/login">Log In</Link>
+            Already have an account? <Link href={`/auth/login?next=${encodeURIComponent(nextPath)}`}>Log In</Link>
           </p>
         </div>
       </div>

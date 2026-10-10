@@ -36,5 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local project docs (not for commit)
+Project.md
+DashboardDesignskill.md
+
 *.tsbuildinfo
 next-env.d.ts
+

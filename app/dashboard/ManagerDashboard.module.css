@@ -10,16 +10,17 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  background: var(--off-white);
+  background: var(--white);
   border: 1.5px solid #d8d8d8;
-  border-radius: 14px;
-  padding: 1.25rem 1.5rem;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  padding: 1.75rem 2rem;
   flex-wrap: wrap;
 }
 
 .payout_banner_title {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
 }
 
@@ -47,14 +48,27 @@
 .venues_header {
   display: flex;
   align-items: center;
+  padding-bottom: 2rem;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
 }
 
+/* Keep the Add venue button pinned to the right when
+   the header wraps onto its own line — space-between
+   alone would left-align a lone wrapped item. */
+.venues_add {
+  margin-left: auto;
+}
+
+.venues_header_titles{
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 .venues_title {
   font-size: clamp(1.3rem, 2vw, 1.6rem);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
   letter-spacing: -0.3px;
 }
@@ -65,33 +79,33 @@
   margin-top: 0.2rem;
 }
 
-/* ── Venue grid ── */
+/* ── Venue grid ──
+   Gallery cards sit directly on the content background: no container,
+   no border, no shadow — just image + text split by the grid gap.
+   See DashboardDesignskill.md → "Gallery Card Exception". */
 .venue_grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
 }
 
 .venue_card {
-  background: var(--white);
-  border: 1.5px solid #d8d8d8;
-  border-radius: 14px;
-  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.7rem;
+  color: inherit;
+  text-decoration: none;
 }
 
-.venue_card_header {
+.venue_card_body {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 .venue_name {
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
   letter-spacing: -0.2px;
 }
@@ -103,124 +117,21 @@
   line-height: 1.45;
 }
 
-.venue_coords {
-  font-size: 0.8rem;
-  color: var(--grey);
-  font-variant-numeric: tabular-nums;
-}
-
-.venue_edit_btn {
-  flex-shrink: 0;
-}
-
-/* ── Amenity chips ── */
-.chip_row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.chip {
-  font-size: 0.75rem;
-  color: var(--primary_green);
-  background: transparent;
-  border: 1px solid var(--primary_green);
-  border-radius: 20px;
-  padding: 0.2rem 0.7rem;
-  line-height: 1;
-}
-
-/* ── Card footer / pitch count ── */
-.card_footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  border-top: 1px solid #ebebeb;
-  padding-top: 0.85rem;
-  flex-wrap: wrap;
-}
-
-.pitch_count {
-  font-size: 0.85rem;
+.venue_price {
+  font-size: 0.9rem;
   font-weight: 500;
-  color: var(--black);
-}
-
-/* ── Pitches panel ── */
-.pitches_panel {
-  border-top: 1px solid #ebebeb;
-  padding-top: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
-.no_pitches {
-  font-size: 0.85rem;
-  color: var(--grey);
-  line-height: 1.5;
-}
-
-.pitch_row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  background: var(--off-white);
-  border-radius: 10px;
-  padding: 0.7rem 0.9rem;
-}
-
-.pitch_name {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--black);
-}
-
-.status_badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  border-radius: 20px;
-  padding: 0.15rem 0.55rem;
-  line-height: 1;
-}
-
-.status_active {
   color: var(--primary_green);
-  border: 1px solid var(--primary_green);
-}
-
-.status_inactive {
-  color: var(--grey);
-  border: 1px solid var(--grey);
-}
-
-.pitch_meta {
-  font-size: 0.78rem;
-  color: var(--grey);
   margin-top: 0.3rem;
-}
-
-.pitch_edit_btn {
-  flex-shrink: 0;
-}
-
-.add_pitch_btn {
-  align-self: flex-start;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Empty state ── */
 .empty_state {
-  background: var(--off-white);
+  background: var(--white);
   border: 1.5px dashed #c5c5c5;
-  border-radius: 14px;
-  padding: 3rem 1.5rem;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  padding: 3rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -230,7 +141,7 @@
 
 .empty_state_title {
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
 }
 
@@ -276,7 +187,7 @@
 
 .modal_title {
   font-size: 1.2rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
   letter-spacing: -0.3px;
 }
@@ -339,6 +250,157 @@
 .field select {
   cursor: pointer;
   appearance: none;
+}
+
+.field textarea {
+  width: 100%;
+  min-height: 96px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem;
+  color: var(--black);
+  background: var(--white);
+  font-family: var(--font_family);
+  resize: vertical;
+  transition: border-color 0.15s ease;
+}
+
+.field textarea:focus {
+  outline: none;
+  border-color: var(--primary_green);
+}
+
+.field textarea::placeholder {
+  color: #b0b0b0;
+}
+
+/* ── Step indicator (venue form) ── */
+.steps_indicator {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.steps_text {
+  font-size: 0.8rem;
+  color: var(--grey);
+}
+
+.steps_text strong {
+  color: var(--black);
+  font-weight: 500;
+}
+
+.steps_dots {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.step_dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid #d8d8d8;
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--grey);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--font_family);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.step_dot:hover {
+  border-color: var(--primary_green);
+  color: var(--primary_green);
+}
+
+.step_dot_active {
+  border-color: var(--primary_green);
+  background: var(--primary_green);
+  color: var(--white);
+}
+
+.step_dot_done {
+  border-color: var(--primary_green);
+  color: var(--primary_green);
+}
+
+/* ── Custom amenity (venue form) ── */
+.custom_amenity_row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.custom_amenity_row input {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 0 0.9rem;
+  font-size: 0.9rem;
+  color: var(--black);
+  background: var(--white);
+  font-family: var(--font_family);
+}
+
+.custom_amenity_row input:focus {
+  outline: none;
+  border-color: var(--primary_green);
+}
+
+.custom_amenity_row input::placeholder {
+  color: #b0b0b0;
+}
+
+.custom_amenity_chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.custom_amenity_chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.35rem 0.28rem 0.75rem;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--primary_green);
+  color: var(--primary_green);
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.custom_amenity_remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.custom_amenity_remove:hover {
+  background: var(--primary_green);
+  color: var(--white);
 }
 
 .field input:focus,
@@ -417,7 +479,7 @@
 .toggle_btn_active {
   background: var(--white);
   color: var(--primary_green);
-  font-weight: 600;
+  font-weight: 500;
   border-color: #d8d8d8;
 }
 
@@ -461,10 +523,11 @@
 
 /* ── Geolocation banner (add venue) ── */
 .geo_banner {
-  background: var(--off-white);
+  background: var(--white);
   border: 1px solid #d8d8d8;
-  border-radius: 12px;
-  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -472,7 +535,7 @@
 
 .geo_banner_title {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
 }
 
@@ -641,75 +704,17 @@
   color: #b91c1c;
 }
 
-/* ── Venue cover thumbnail ── */
-.venue_cover {
-  position: relative;
-  width: 100%;
-  height: 150px;
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--off-white);
-  border: 1px solid #ebebeb;
-}
-
-.venue_cover_fallback {
-  width: 100%;
-  height: 150px;
-  border-radius: 12px;
-  background: var(--off-white);
-  border: 1px solid #ebebeb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--grey);
-  font-size: 0.8rem;
-}
-
-/* ── Venue image thumbnail strip (below cover) ── */
-.venue_thumbs {
-  display: flex;
-  gap: 0.4rem;
-  max-height: 68px;
-  overflow: hidden;
-}
-
-.venue_thumb {
-  position: relative;
-  flex-shrink: 0;
-  width: 72px;
-  height: 56px;
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--off-white);
-  border: 1px solid #e0e0e0;
-}
-
-/* ── Pitch image thumbnail strip (inside pitch row) ── */
-.pitch_thumbs {
-  display: flex;
-  gap: 0.35rem;
-  margin-top: 0.35rem;
-  max-height: 52px;
-  overflow: hidden;
-}
-
-.pitch_thumb {
-  position: relative;
-  flex-shrink: 0;
-  width: 60px;
-  height: 44px;
-  border-radius: 6px;
-  overflow: hidden;
-  background: var(--off-white);
-  border: 1px solid #e0e0e0;
-}
+/* ── Venue cover / thumbnail strips live in ImageGallery.module.css ── */
 
 /* ── Payouts page ── */
 .payout_setup_card,
 .payout_status_card {
+  position: relative;
+  overflow: hidden;
   background: var(--white);
   border: 1px solid #e0e0e0;
-  border-radius: 14px;
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -717,10 +722,22 @@
   max-width: 640px;
 }
 
+/* Decorative oversized watermark icon — payout status hero only */
+.deco_icon_green {
+  position: absolute;
+  right: -14px;
+  bottom: -14px;
+  width: 96px;
+  height: 96px;
+  opacity: 0.08;
+  color: var(--primary_green);
+  pointer-events: none;
+}
+
 .payout_setup_title,
 .payout_status_title {
   font-size: 1.4rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
   letter-spacing: -0.3px;
 }

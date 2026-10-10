@@ -138,18 +138,25 @@
 .thumb {
   position: relative;
   height: 150px;
-  background-image: repeating-linear-gradient(
-    100deg,
-    var(--primary_green) 0px,
-    var(--primary_green) 22px,
-    var(--secondary_green) 22px,
-    var(--secondary_green) 44px
-  );
-  transition: background-position var(--transition-normal);
+  background-color: var(--off-white);
+  overflow: hidden;
 }
 
-.card:hover .thumb {
-  background-position: 16px 0;
+.thumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--grey);
+  background: var(--off-white);
 }
 
 .sizeBadge {
@@ -254,20 +261,23 @@
   color: var(--grey);
 }
 
-.slots {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+.pitchCount {
   font-size: 0.75rem;
   font-weight: var(--fw_normal);
   color: var(--grey);
 }
 
-.slotsDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background-color: var(--lime_green);
+.distance {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: var(--fw_medium);
+  color: var(--primary_green);
+}
+
+.distanceIcon {
+  font-size: 0.85rem;
 }
 
 /* ── Empty state */
@@ -498,6 +508,14 @@
 
 .selectChevronOpen {
   transform: rotate(180deg);
+}
+
+.geoHint {
+  font-size: 0.78rem;
+  font-weight: var(--fw_normal);
+  color: var(--grey);
+  margin-top: 0.4rem;
+  line-height: 1.4;
 }
 
 .countyPanel {

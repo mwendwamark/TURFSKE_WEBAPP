@@ -1,0 +1,274 @@
+/* ─────────────────────────────────────────────
+   Image gallery — main image + photo navigation.
+   Shared by the My Venues list card (card: bigger
+   image + thumbnail strip) and the venue detail
+   page (detail: bigger image + prev/next controls).
+───────────────────────────────────────────── */
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+/* Main image box: no padding, no border, no shadow —
+   the image runs edge to edge and carries its own rounding. */
+.main {
+  position: relative;
+  width: 100%;
+  background: var(--off-white);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.card .main {
+  height: 230px;
+}
+
+.detail .main {
+  height: clamp(260px, 38vw, 440px);
+}
+
+.main_image {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  object-fit: cover;
+  transition: transform var(--transition-fast);
+}
+
+/* Detail galleries preload every photo stacked in the
+   main box (see ImageGallery.tsx) — only the active
+   slide is shown. The rest stay loaded but invisible,
+   so switching slides is a pure visibility toggle with
+   no network round-trip. */
+.detail .main_image {
+  visibility: hidden;
+}
+
+.detail .main_image_active {
+  visibility: visible;
+  z-index: 1;
+}
+
+/* Subtle zoom when hovering the card's image area. */
+.card:hover .main_image {
+  transform: scale(1.03);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background: var(--off-white);
+  color: var(--grey);
+  font-size: 0.8rem;
+}
+
+.card .empty {
+  height: 230px;
+  border-radius: 18px;
+}
+
+.detail .empty {
+  height: clamp(260px, 38vw, 440px);
+  border-radius: 18px;
+}
+
+/* ── Photo navigation (detail variant) ── */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* ── Overlay navigation (detail variant, opt-in) ──
+   Arrows and dots sit on top of the image with semi-transparent dark
+   backgrounds so they stay legible over any photo. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.9rem;
+  pointer-events: none;
+}
+
+.overlay > * {
+  pointer-events: auto;
+}
+
+.overlay .nav_button {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--white);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.overlay .nav_button:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--white);
+}
+
+.overlay .dots {
+  position: absolute;
+  bottom: 0.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.overlay .dot {
+  width: 7px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.overlay .dot:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.overlay .dot_active {
+  width: 20px;
+  background: var(--lime_green);
+}
+
+.nav_button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1.5px solid #d8d8d8;
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--black);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.nav_button svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.nav_button:hover:not(:disabled) {
+  border-color: var(--primary_green);
+  color: var(--primary_green);
+  background: var(--light_green);
+}
+
+.nav_button:focus-visible {
+  outline: 2px solid var(--secondary_green);
+  outline-offset: 2px;
+}
+
+.nav_button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: #d0d0d0;
+  cursor: pointer;
+  transition:
+    width var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.dot:hover {
+  background: var(--grey);
+}
+
+.dot_active {
+  width: 22px;
+  background: var(--primary_green);
+}
+
+.dot:focus-visible {
+  outline: 2px solid var(--secondary_green);
+  outline-offset: 2px;
+}
+
+/* ── Thumbnail strip (card variant) ──
+   Still wheel/drag scrollable, but the scrollbar chrome itself is hidden
+   so the strip reads as a clean row of photos. */
+.strip {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.15rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.strip::-webkit-scrollbar {
+  display: none;
+}
+
+.thumb {
+  position: relative;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: var(--off-white);
+  overflow: hidden;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.card .thumb {
+  width: 88px;
+  height: 66px;
+}
+
+.thumb:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.5);
+}
+
+.thumb:focus-visible {
+  outline: 2px solid var(--secondary_green);
+  outline-offset: 2px;
+}
+
+.thumb_image {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  object-fit: cover;
+}

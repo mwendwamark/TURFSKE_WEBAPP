@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Wallet } from "lucide-react";
 import Button from "@/components/ui/buttons/Button";
 import { getPaystackBanks, setPayoutAccountAction } from "../actions";
 import type { BankOption, PayoutStatus } from "../types";
@@ -98,6 +99,7 @@ export default function PayoutsClient({ payout }: PayoutsClientProps) {
           Money from player bookings will be paid into this account. To change your
           payout details, please contact support.
         </p>
+        <Wallet className={styles.deco_icon_green} size={96} aria-hidden="true" />
       </div>
     );
   }

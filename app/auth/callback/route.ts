@@ -36,11 +36,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/auth/error`);
   }
 
-  // Password-recovery flow — forgotPassword sends users here with
-  // ?next=/auth/reset-password. Only allow internal paths (open-redirect guard).
-  if (next && next.startsWith("/") && !next.startsWith("//")) {
-    return NextResponse.redirect(`${origin}${next}`);
-  }
+  // Return path — e.g. the venue page's "Book now" button
+  // sends guests to /auth/signup?next=/venues/xyz, and the
+  // password-recovery flow arrives with ?next=/auth/reset-password.
+  // Only allow internal paths (open-redirect guard). Applied
+  // after profile resolution below so a brand-new signup still
+  // gets its profile (role) created before being redirected.
+  const nextPath =
+    next && next.startsWith("/") && !next.startsWith("//")
+      ? next
+      : null;
 
   const user = session.user;
 
@@ -60,7 +65,8 @@ export async function GET(request: NextRequest) {
   // CASE: no profile yet
   if (!existingRole) {
     // Intent known (signup role toggle) — create the profile with that role
-    // and take them straight to the dashboard. No second role prompt needed.
+    // and take them to the page they were headed for (or the dashboard).
+    // No second role prompt needed.
     if (roleRequested) {
       const { error: upsertError } = await upsertProfile(supabase, user.id, roleRequested, user);
 
@@ -69,22 +75,23 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(`${origin}/auth/error`);
       }
 
-      return NextResponse.redirect(`${origin}/dashboard`);
+      return NextResponse.redirect(`${origin}${nextPath ?? "/dashboard"}`);
     }
 
     // No role context (e.g. login page's Google button) — ask for their intent.
     return NextResponse.redirect(`${origin}/auth/select-role`);
   }
 
-  // CASE: profile exists — plain login (no intended role). Just go to dashboard.
+  // CASE: profile exists — plain login (no intended role).
+  // Also covers password recovery (?next=/auth/reset-password).
   if (!roleRequested) {
-    return NextResponse.redirect(`${origin}/dashboard`);
+    return NextResponse.redirect(`${origin}${nextPath ?? "/dashboard"}`);
   }
 
   // Intended role matches the existing profile — a returning user
   // re-authenticating via Google with the same role. Nothing to explain.
   if (roleRequested === existingRole) {
-    return NextResponse.redirect(`${origin}/dashboard`);
+    return NextResponse.redirect(`${origin}${nextPath ?? "/dashboard"}`);
   }
 
   // Intended role conflicts with the existing profile (one email, two roles).

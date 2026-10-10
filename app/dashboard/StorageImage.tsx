@@ -9,9 +9,22 @@ type StorageImageProps = {
   alt: string;
   sizes: string;
   className?: string;
+  /**
+   * Fetch eagerly with high priority — for above-the-fold
+   * images such as the venue gallery's hero photo. Never
+   * combine with `loading="lazy"` (next/image applies
+   * loading="eager" when priority is set).
+   */
+  priority?: boolean;
 };
 
-export default function StorageImage({ storagePath, alt, sizes, className = "" }: StorageImageProps) {
+export default function StorageImage({
+  storagePath,
+  alt,
+  sizes,
+  className = "",
+  priority = false,
+}: StorageImageProps) {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
@@ -35,6 +48,7 @@ export default function StorageImage({ storagePath, alt, sizes, className = "" }
       fill
       sizes={sizes}
       className={className}
+      priority={priority}
       onError={() => setFailed(true)}
     />
   );

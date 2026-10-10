@@ -35,11 +35,19 @@ export type Venue = {
   address_text: string | null;
   latitude: number | null;
   longitude: number | null;
+  description: string | null;
+  rules: string | null;
+};
+
+export type VenueAmenityLink = {
+  amenity_id: string;
+  /** Populated when the query embeds the amenities table (venue detail page). */
+  amenities?: { id: string; name: string } | null;
 };
 
 export type VenueWithRelations = Venue & {
   pitches: Pitch[];
-  venue_amenities: { amenity_id: string }[];
+  venue_amenities: VenueAmenityLink[];
   venue_images: VenueImage[];
 };
 

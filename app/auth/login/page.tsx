@@ -28,15 +28,33 @@ function ResetSuccessNotice() {
   );
 }
 
+// Get next from URL query params using standard JS (avoids Next.js suspense build error)
+function getNextFromUrl(): string {
+  try {
+    const url = new URL(window.location.href);
+    const next = url.searchParams.get("next");
+    if (typeof next === "string" && next.startsWith("/") && !next.startsWith("//")) {
+      return next;
+    }
+  } catch {
+    /* swallow */
+  }
+  return "/dashboard";
+}
+
 export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
+  const next = getNextFromUrl();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMessage(null);
     const formData = new FormData(e.currentTarget);
+
+    // Ensure next is sent with the sign-in request
+    formData.set("next", next);
 
     startTransition(async () => {
       const result = await signIn(formData);
@@ -93,6 +111,8 @@ export default function LoginPage() {
           </Suspense>
 
           <form onSubmit={handleSubmit} className={styles.form}>
+            <input type="hidden" name="next" value={next} />
+
             <div className={styles.field}>
               <label htmlFor="email">Email</label>
               <input
@@ -153,6 +173,7 @@ export default function LoginPage() {
 
           <div className={styles.oauth_group}>
             <form action={signInWithGoogle}>
+              <input type="hidden" name="next" value={next} />
               <button type="submit" className={styles.oauth_btn}>
                 <FcGoogle className={styles.oauth_icon}/>
                 
@@ -162,7 +183,7 @@ export default function LoginPage() {
           </div>
 
           <p className={styles.form_footer}>
-            Don&apos;t have an account? <Link href="/auth/signup">Sign up</Link>
+            Don&apos;t have an account? <Link href={`/auth/signup?next=${encodeURIComponent(next)}`}>Sign up</Link>
           </p>
         </div>
       </div>

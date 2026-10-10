@@ -45,8 +45,74 @@ export type VenueFormInput = {
   addressText: string;
   latitude: string;
   longitude: string;
+  description: string;
+  rules: string;
   amenityIds: string[];
+  /**
+   * Amenity names typed into the "Add a custom amenity" box. Resolved
+   * against the amenities table (case-insensitively) at submit time —
+   * an existing match is linked, anything new gets a row first.
+   */
+  customAmenityNames: string[];
 };
+
+/**
+ * Resolve custom amenity names to amenity ids. A name that matches an
+ * existing row case-insensitively links to that row (no duplicate);
+ * anything else is inserted as a new amenity first. Returns the ids in
+ * the same order the names were given, deduped.
+ */
+async function resolveCustomAmenityIds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  names: string[],
+): Promise<{ ids: string[]; error: string | null }> {
+  const clean = names
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0);
+
+  if (clean.length === 0) return { ids: [], error: null };
+
+  // Fresh catalog lookup — never trust a stale client-side list.
+  const { data: existing, error: fetchError } = await supabase
+    .from("amenities")
+    .select("id, name");
+
+  if (fetchError) {
+    return { ids: [], error: "We couldn't save the venue's amenities. Please try again." };
+  }
+
+  const byLowercase = new Map<string, string>();
+  (existing ?? []).forEach((amenity) =>
+    byLowercase.set(amenity.name.trim().toLowerCase(), amenity.id),
+  );
+
+  const ids: string[] = [];
+
+  for (const name of clean) {
+    const key = name.toLowerCase();
+    const matchId = byLowercase.get(key);
+
+    if (matchId) {
+      if (!ids.includes(matchId)) ids.push(matchId);
+      continue;
+    }
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("amenities")
+      .insert({ name })
+      .select("id")
+      .single();
+
+    if (insertError || !inserted) {
+      return { ids: [], error: "We couldn't save the venue's amenities. Please try again." };
+    }
+
+    byLowercase.set(key, inserted.id);
+    if (!ids.includes(inserted.id)) ids.push(inserted.id);
+  }
+
+  return { ids, error: null };
+}
 
 export async function createVenueAction(
   input: VenueFormInput,
@@ -78,6 +144,8 @@ export async function createVenueAction(
       address_text: input.addressText.trim() || null,
       latitude,
       longitude,
+      description: input.description.trim() || null,
+      rules: input.rules.trim() || null,
     })
     .select("id")
     .single();
@@ -86,7 +154,20 @@ export async function createVenueAction(
     return { success: false, error: "We couldn't save your venue. Please try again." };
   }
 
-  const amenityError = await syncVenueAmenities(supabase, venue.id, input.amenityIds);
+  // Checked amenities + any custom ones typed into the form. Custom
+  // names are resolved case-insensitively so the same amenity is never
+  // duplicated — it either links to the existing row or gets a new one.
+  const { ids: customIds, error: customError } = await resolveCustomAmenityIds(
+    supabase,
+    input.customAmenityNames,
+  );
+  if (customError) {
+    return { success: false, error: customError };
+  }
+
+  const amenityIds = [...new Set([...input.amenityIds, ...customIds])];
+
+  const amenityError = await syncVenueAmenities(supabase, venue.id, amenityIds);
   if (amenityError) {
     return { success: false, error: amenityError };
   }
@@ -122,12 +203,28 @@ export async function updateVenueAction(
       address_text: input.addressText.trim() || null,
       latitude,
       longitude,
+      description: input.description.trim() || null,
+      rules: input.rules.trim() || null,
     })
     .eq("id", venueId);
 
   if (updateError) {
     return { success: false, error: "We couldn't update your venue. Please try again." };
   }
+
+  // Checked amenities + any custom ones typed into the form.
+  // Custom names are resolved case-insensitively so the same
+  // amenity is never duplicated — it either links to the
+  // existing row or gets a new one.
+  const { ids: customIds, error: customError } = await resolveCustomAmenityIds(
+    supabase,
+    input.customAmenityNames,
+  );
+  if (customError) {
+    return { success: false, error: customError };
+  }
+
+  const amenityIds = [...new Set([...input.amenityIds, ...customIds])];
 
   // Diff the amenity selections against existing venue_amenities rows:
   // add what was checked, remove what was unchecked.
@@ -137,8 +234,8 @@ export async function updateVenueAction(
     .eq("venue_id", venueId);
 
   const existingIds = (existing ?? []).map((row) => row.amenity_id);
-  const toRemove = existingIds.filter((id) => !input.amenityIds.includes(id));
-  const toAdd = input.amenityIds.filter((id) => !existingIds.includes(id));
+  const toRemove = existingIds.filter((id) => !amenityIds.includes(id));
+  const toAdd = amenityIds.filter((id) => !existingIds.includes(id));
 
   if (toRemove.length > 0) {
     const { error: deleteError } = await supabase
@@ -163,6 +260,59 @@ export async function updateVenueAction(
   }
 
   revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export async function deleteVenueAction(venueId: string): Promise<ActionResult> {
+  const { supabase, user } = await getSession();
+  if (!user) return { success: false, error: "Please sign in to continue." };
+
+  // Ownership check + storage inventory in one query scoped to this manager.
+  // Covers the venue's own photos and every photo of every pitch under it.
+  const { data: venue } = await supabase
+    .from("venues")
+    .select(
+      "id, venue_images(storage_path), pitches(id, pitch_images(storage_path))",
+    )
+    .eq("id", venueId)
+    .eq("manager_id", user.id)
+    .maybeSingle();
+
+  if (!venue) {
+    return { success: false, error: "We couldn't find that venue. It may have been removed." };
+  }
+
+  const paths: string[] = [];
+  (venue.venue_images ?? []).forEach((image: { storage_path: string }) =>
+    paths.push(image.storage_path),
+  );
+  (venue.pitches ?? []).forEach((pitch: { pitch_images: { storage_path: string }[] | null }) =>
+    (pitch.pitch_images ?? []).forEach((image) => paths.push(image.storage_path)),
+  );
+
+  // Storage first — if the files can't be removed we stop here rather than
+  // deleting the row and orphaning them.
+  const cleaned = await removeMediaFiles(supabase, paths, `${venueId}/`);
+  if (!cleaned) {
+    return {
+      success: false,
+      error: "We couldn't remove this venue's photos, so nothing was deleted. Please try again.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("venues")
+    .delete()
+    .eq("id", venueId)
+    .eq("manager_id", user.id);
+
+  if (error) {
+    return { success: false, error: "We couldn't delete that venue. Please try again." };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/venues");
+  revalidatePath(`/dashboard/venues/${venueId}`);
   return { success: true };
 }
 
@@ -278,6 +428,48 @@ export async function updatePitchAction(
   }
 
   revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export async function deletePitchAction(pitchId: string): Promise<ActionResult> {
+  const { supabase, user } = await getSession();
+  if (!user) return { success: false, error: "Please sign in to continue." };
+
+  // Ownership is verified through the pitch's venue, same as every other
+  // pitch action.
+  const venueId = await venueIdForPitch(supabase, pitchId);
+  if (!venueId || !(await venueBelongsToManager(supabase, venueId, user.id))) {
+    return { success: false, error: "We couldn't find that pitch. It may have been removed." };
+  }
+
+  const { data: images } = await supabase
+    .from("pitch_images")
+    .select("storage_path")
+    .eq("pitch_id", pitchId);
+
+  const paths = (images ?? []).map((image: { storage_path: string }) => image.storage_path);
+
+  const cleaned = await removeMediaFiles(supabase, paths, `${venueId}/`);
+  if (!cleaned) {
+    return {
+      success: false,
+      error: "We couldn't remove this pitch's photos, so nothing was deleted. Please try again.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("pitches")
+    .delete()
+    .eq("id", pitchId)
+    .eq("venue_id", venueId);
+
+  if (error) {
+    return { success: false, error: "We couldn't delete that pitch. Please try again." };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/venues");
+  revalidatePath(`/dashboard/venues/${venueId}`);
   return { success: true };
 }
 
@@ -649,6 +841,25 @@ export async function updateSettingsAction(input: SettingsInput): Promise<Action
 }
 
 // ── Shared helpers ────────────────────────────────────────
+
+/**
+ * Delete stored objects from the venue-media bucket before their DB rows go.
+ * Only paths under `prefix` (the owning venue's folder) are removed, so a
+ * stray or tampered row can never touch another manager's files.
+ * Returns false when the storage call fails — callers should then abort the
+ * matching DB delete rather than leave orphaned files behind.
+ */
+async function removeMediaFiles(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  paths: string[],
+  prefix: string,
+): Promise<boolean> {
+  const owned = paths.filter((path) => typeof path === "string" && path.startsWith(prefix));
+  if (owned.length === 0) return true;
+
+  const { error } = await supabase.storage.from(IMAGE_BUCKET).remove(owned);
+  return !error;
+}
 
 async function venueIdForPitch(
   supabase: Awaited<ReturnType<typeof createClient>>,

@@ -41,7 +41,7 @@ export default async function OverviewPage({
       supabase
         .from("venues")
         .select(
-          "id, name, address_text, latitude, longitude, venue_images(id, venue_id, storage_path, position), pitches(id, venue_id, name, sport_type, size, price_per_hour, surface_type, status, pitch_images(id, pitch_id, storage_path, position)), venue_amenities(amenity_id)",
+          "id, name, address_text, latitude, longitude, description, rules, venue_images(id, venue_id, storage_path, position), pitches(id, venue_id, name, sport_type, size, price_per_hour, surface_type, status, pitch_images(id, pitch_id, storage_path, position)), venue_amenities(amenity_id)",
         )
         .eq("manager_id", user.id)
         .order("created_at", { ascending: false }),

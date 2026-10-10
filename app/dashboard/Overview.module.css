@@ -15,7 +15,7 @@
 
 .page_title {
   font-size: clamp(1.5rem, 2.5vw, 2rem);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
   letter-spacing: -0.3px;
 }
@@ -29,36 +29,38 @@
 .stat_grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .stat_card {
   background: var(--white);
   border: 1px solid #e0e0e0;
-  border-radius: 14px;
-  padding: 1.25rem;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  padding: 2.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
 
 .stat_value {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 3rem;
+  font-weight: 500;
   color: var(--black);
   letter-spacing: -0.3px;
 }
 
 .stat_label {
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 400;
   color: var(--grey);
 }
 
 .welcome_card {
   background: var(--white);
   border: 1px solid #e0e0e0;
-  border-radius: 14px;
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -67,7 +69,7 @@
 
 .welcome_title {
   font-size: clamp(1.3rem, 2vw, 1.6rem);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
   letter-spacing: -0.3px;
 }
@@ -88,14 +90,15 @@
 
 .section_title {
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
 }
 
 .recent_list {
   background: var(--white);
   border: 1px solid #e0e0e0;
-  border-radius: 14px;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
@@ -103,7 +106,7 @@
   display: flex;
   align-items: center;
   gap: 0.9rem;
-  padding: 0.95rem 1.25rem;
+  padding: 2rem 1.25rem;
   border-bottom: 1px solid #ebebeb;
   transition: background var(--transition-fast);
 }
@@ -117,10 +120,8 @@
 }
 
 .recent_icon {
-  width: 38px;
-  height: 38px;
   border-radius: 50%;
-  background: rgba(27, 82, 40, 0.08);
+  /* background: rgba(27, 82, 40, 0.08); */
   color: var(--primary_green);
   display: flex;
   align-items: center;
@@ -135,7 +136,7 @@
 
 .recent_name {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
 }
 
@@ -153,7 +154,7 @@
   border: 1px solid #dfe6df;
   color: var(--secondary_green);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   padding: 0.25rem 0.7rem;
   border-radius: 999px;
   white-space: nowrap;
@@ -161,8 +162,12 @@
 }
 
 .recent_manage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--primary_green);
   white-space: nowrap;
   flex-shrink: 0;
@@ -198,26 +203,52 @@
 .stat_row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.1rem;
+  gap: 1.25rem;
 }
 
 .stat_card.accent_hero,
 .stat_card_accent {
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(135deg, var(--primary_green), #0f2b16);
-  border-radius: 14px;
-  padding: 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   color: var(--white);
-  box-shadow: 0 8px 22px rgba(27, 82, 40, 0.28);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 22px rgba(27, 82, 40, 0.18);
+}
+
+/* Decorative oversized watermark icon — hero accent card only */
+.deco_icon {
+  position: absolute;
+  right: -14px;
+  bottom: -14px;
+  width: 96px;
+  height: 96px;
+  opacity: 0.1;
+  color: var(--white);
+  pointer-events: none;
+}
+
+.deco_icon_green {
+  position: absolute;
+  right: -14px;
+  bottom: -14px;
+  width: 96px;
+  height: 96px;
+  opacity: 0.08;
+  color: var(--primary_green);
+  pointer-events: none;
 }
 
 .stat_icon_accent {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
+  /* background: rgba(255, 255, 255, 0.14); */
   color: var(--white);
   display: flex;
   align-items: center;
@@ -226,15 +257,15 @@
 }
 
 .stat_value_accent {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 3rem;
+  font-weight: 500;
   color: var(--white);
   letter-spacing: -0.3px;
   line-height: 1;
 }
 
 .stat_label_accent {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.78);
 }
@@ -243,7 +274,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: rgba(27, 82, 40, 0.08);
+  /* background: rgba(27, 82, 40, 0.08); */
   color: var(--primary_green);
   display: flex;
   align-items: center;
@@ -255,6 +286,7 @@
   color: var(--black);
   text-decoration: none;
   transition: border-color var(--transition-fast);
+  border: 3px solid var(--primary_green);
 }
 
 .stat_card_link:hover {
@@ -265,8 +297,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 500;
   color: var(--black);
   letter-spacing: -0.2px;
   line-height: 1;
@@ -284,21 +316,22 @@
 }
 
 .status_dot_pending {
-  background: #e0a13b;
+  background: var(--lime_green);
 }
 
 /* ── Quick actions ─────────────────── */
 .quick_actions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .quick_action {
-  background: var(--white);
+  /* background: var(--white); */
   border: 1.5px solid #e0e0e0;
-  border-radius: 14px;
-  padding: 1.15rem 1.3rem;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  padding: 2.5rem 1.6rem;
   display: flex;
   align-items: flex-start;
   gap: 0.9rem;
@@ -308,11 +341,13 @@
   transition:
     border-color var(--transition-fast),
     background var(--transition-fast);
+      background: #fafdfa;
+
 }
 
 .quick_action:hover:not(:disabled) {
   border-color: var(--primary_green);
-  background: #fafdfa;
+  background: var(--white);
 }
 
 .quick_action:disabled {
@@ -324,7 +359,7 @@
   width: 38px;
   height: 38px;
   border-radius: 12px;
-  background: rgba(27, 82, 40, 0.08);
+  /* background: rgba(27, 82, 40, 0.08); */
   color: var(--primary_green);
   display: flex;
   align-items: center;
@@ -341,7 +376,7 @@
 
 .quick_title {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
   font-family: var(--font_family);
 }
@@ -364,13 +399,14 @@
   flex: 0 0 300px;
   background: var(--white);
   border: 1.5px solid #e0e0e0;
-  border-radius: 14px;
-  padding: 1.3rem 1.4rem;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  padding: 1.75rem;
 }
 
 .checklist_title {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--black);
 }
 
@@ -391,7 +427,7 @@
 
 .checklist_item_done {
   color: var(--primary_green);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .check_icon_pending {
