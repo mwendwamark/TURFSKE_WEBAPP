@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
+  Wifi,
   ArrowLeft,
   Armchair,
   CircleParking,
@@ -12,10 +13,11 @@ import {
   Shirt,
   Sparkles,
   Toilet,
-  Square,
-  Wifi,
   User,
+  UserCheck,
   Utensils,
+  Volleyball,
+  BriefcaseMedical,
   type LucideIcon,
 } from "lucide-react";
 import ImageGallery from "../../dashboard/ImageGallery";
@@ -63,13 +65,13 @@ const AMENITY_ICONS: Record<string, LucideIcon> = {
   restrooms: Toilet,
   toilet: Toilet,
   toilets: Toilet,
-  bibs: Square,
+  bibs: UserCheck,
   canteen: Utensils,
   wifi: Wifi,
-  "balls provided": Square,
+  "balls provided": Volleyball,
   "referee available": User,
   "spectator seating": Armchair,
-  "first aid": Square,
+  "first aid": BriefcaseMedical,
 };
 
 const AMENITY_FALLBACK_ICON: LucideIcon = Sparkles;
@@ -80,8 +82,9 @@ function amenityIcon(name: string): LucideIcon {
 
 function pitchCover(pitch: VenueWithRelations["pitches"][number]) {
   return (
-    [...(pitch.pitch_images ?? [])].sort((a, b) => a.position - b.position)[0] ??
-    null
+    [...(pitch.pitch_images ?? [])].sort(
+      (a, b) => a.position - b.position,
+    )[0] ?? null
   );
 }
 
@@ -116,20 +119,35 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
   function bookNowButton(className?: string) {
     if (isGuest) {
       return (
-        <Button variant="primary" href={bookingHref} className={className}>
+        <Button
+          variant="primary"
+          href={bookingHref}
+          className={className}
+          fullWidth={Boolean(className)}
+        >
           Book now
         </Button>
       );
     }
     if (auth.kind === "player") {
       return (
-        <Button variant="primary" className={className} disabled>
+        <Button
+          variant="primary"
+          className={className}
+          disabled
+          fullWidth={Boolean(className)}
+        >
           Booking is coming soon
         </Button>
       );
     }
     return (
-      <Button variant="primary" className={className} disabled>
+      <Button
+        variant="primary"
+        className={className}
+        disabled
+        fullWidth={Boolean(className)}
+      >
         Book now
       </Button>
     );
@@ -172,7 +190,7 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
 
       {auth.kind === "notice" && <RoleNoticeBanner message={auth.message} />}
 
-      <div className={ `${styles.layout}`}>
+      <div className={`${styles.layout}`}>
         <div className={styles.main_col}>
           <ImageGallery
             images={venue.venue_images}

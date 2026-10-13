@@ -18,6 +18,7 @@ type BaseButtonProps = {
   variant?: ButtonVariant;
   href?: string;
   arrow?: boolean;
+  fullWidth?: boolean;
   /**
    * Optional leading icon rendered before the label, e.g. `<Plus />`.
    * Decorative — it is hidden from screen readers, so the label still
@@ -47,6 +48,7 @@ export default function Button({
   arrow,
   icon,
   iconOnly = false,
+  fullWidth = false,
   className = "",
   children,
   ...rest
@@ -55,7 +57,8 @@ export default function Button({
 
   // outline and danger are text-first actions — no arrow by default, and a
   // leading icon stands in for the arrow rather than stacking with it.
-  const defaultArrow = variant !== "outline" && variant !== "danger" && !hasIcon;
+  const defaultArrow =
+    variant !== "outline" && variant !== "danger" && !hasIcon;
   const showArrow = !iconOnly && (arrow !== undefined ? arrow : defaultArrow);
 
   const classes = [
@@ -63,6 +66,7 @@ export default function Button({
     styles[variant],
     !showArrow ? styles.no_arrow : "",
     iconOnly ? styles.icon_only : "",
+    fullWidth && showArrow ? styles.full_width : "",
     className,
   ]
     .filter(Boolean)

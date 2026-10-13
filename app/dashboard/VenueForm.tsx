@@ -14,6 +14,7 @@ import {
   updateVenueAction,
 } from "./actions";
 import { uploadToBucket, venueImagePath } from "@/utils/supabase/images";
+import { normalizeAmenityName } from "../utils/amenity";
 import type { Amenity, VenueWithRelations } from "./types";
 import styles from "./ManagerDashboard.module.css";
 
@@ -82,13 +83,20 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
   }
 
   function addCustomAmenity() {
-    const customName = customAmenityInput.trim();
-    if (!customName) return;
+    // Normalise the input: trim, collapse whitespace, title-case each word
+    // (keeping fully‑uppercase words like "CCTV" unchanged).
+    const normalised = normalizeAmenityName(customAmenityInput);
+
+    // Validate length 2–40 characters.
+    if (!normalised || normalised.length < 2 || normalised.length > 40) {
+      setMessage({ type: "error", text: "Custom amenity must be between 2 and 40 characters." });
+      return;
+    }
 
     // Matches an existing catalog amenity (case-insensitively)?
     // Check that amenity instead of creating a duplicate entry.
     const catalogMatch = amenities.find(
-      (amenity) => amenity.name.trim().toLowerCase() === customName.toLowerCase(),
+      (amenity) => amenity.name.trim().toLowerCase() === normalised.toLowerCase(),
     );
     if (catalogMatch) {
       setSelectedAmenityIds((prev) =>
@@ -98,12 +106,12 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
       return;
     }
 
-    // Already queued as a custom amenity? Ignore the repeat.
+    // Already queued as a custom amenity? Ignore the repeat (case‑insensitive).
     const alreadyAdded = customAmenityNames.some(
-      (queued) => queued.trim().toLowerCase() === customName.toLowerCase(),
+      (queued) => queued.toLowerCase() === normalised.toLowerCase(),
     );
     if (!alreadyAdded) {
-      setCustomAmenityNames((prev) => [...prev, customName]);
+      setCustomAmenityNames((prev) => [...prev, normalised]);
     }
     setCustomAmenityInput("");
   }
