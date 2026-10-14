@@ -230,6 +230,12 @@
   margin-top: 0.3rem;
 }
 
+.pitch_opens {
+  font-size: 0.75rem;
+  color: var(--grey);
+  margin-top: 0.2rem;
+}
+
 .pitch_actions {
   display: flex;
   align-items: center;

@@ -14,7 +14,6 @@ import VenueForm from "../../VenueForm";
 import { deletePitchAction, deleteVenueAction } from "../../actions";
 import type { Amenity, Pitch, VenueWithRelations } from "../../types";
 import styles from "./VenueDetail.module.css";
-
 type ModalState =
   | { type: "edit-venue" }
   | { type: "pitch"; pitch: Pitch | null }
@@ -244,6 +243,9 @@ export default function VenueDetail({ venue, amenities }: VenueDetailProps) {
                       {pitch.price_per_hour != null
                         ? ` · KES ${pitch.price_per_hour.toLocaleString()}/hr`
                         : ""}
+                    </p>
+                    <p className={styles.pitch_opens}>
+                      Opens {pitch.opens_at.slice(0, 5)} to {pitch.closes_at.slice(0, 5)}
                     </p>
                   </div>
 

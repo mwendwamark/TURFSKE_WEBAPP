@@ -7,7 +7,7 @@
   flex-direction: column;
   gap: 1.5rem;
   padding: 8rem 1.5rem 3rem;
-  max-width: 1180px;
+  max-width: 1440px;
   margin: 0 auto;
 }
 
@@ -364,7 +364,7 @@
 /* ── Small phones ── */
 @media (max-width: 640px) {
   .detail {
-    padding: 1.5rem 1rem calc(5.75rem + env(safe-area-inset-bottom));
+    /* padding: 1.5rem 1rem calc(5.75rem + env(safe-area-inset-bottom)); */
   }
 
   .title {

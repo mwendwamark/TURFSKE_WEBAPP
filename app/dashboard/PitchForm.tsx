@@ -18,6 +18,8 @@ import type { Pitch } from "./types";
 import styles from "./ManagerDashboard.module.css";
 
 const SIZE_OPTIONS = ["5-a-side", "7-a-side", "11-a-side"] as const;
+const OPEN_HOURS = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, "0")}:00`);
+const CLOSE_HOURS = Array.from({ length: 24 }, (_, h) => `${String(h + 1).padStart(2, "0")}:00`);
 
 type PitchFormProps = {
   venueId: string;
@@ -40,6 +42,8 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
   const [status, setStatus] = useState<"active" | "inactive">(
     pitch?.status === "inactive" ? "inactive" : "active",
   );
+  const [opensAt, setOpensAt] = useState<string>(pitch?.opens_at?.slice(0, 5) ?? "06:00");
+  const [closesAt, setClosesAt] = useState<string>(pitch?.closes_at?.slice(0, 5) ?? "22:00");
 
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<ExistingImageItem[]>(
@@ -85,6 +89,11 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
     event.preventDefault();
     setMessage(null);
 
+    if (closesAt <= opensAt) {
+      setMessage({ type: "error", text: "Closing time must be after opening time." });
+      return;
+    }
+
     const input = {
       name,
       sportType,
@@ -92,6 +101,8 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
       pricePerHour,
       surfaceType,
       status,
+      opens_at: opensAt,
+      closes_at: closesAt,
     };
 
     startTransition(async () => {
@@ -231,6 +242,38 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
             onChange={(event) => setSurfaceType(event.target.value)}
             placeholder="e.g. Artificial turf"
           />
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="pitch-opens">Opens</label>
+          <select
+            id="pitch-opens"
+            name="opens_at"
+            value={opensAt}
+            onChange={(event) => setOpensAt(event.target.value)}
+          >
+            {OPEN_HOURS.map((hour) => (
+              <option key={hour} value={hour}>
+                {hour}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="pitch-closes">Closes</label>
+          <select
+            id="pitch-closes"
+            name="closes_at"
+            value={closesAt}
+            onChange={(event) => setClosesAt(event.target.value)}
+          >
+            {CLOSE_HOURS.map((hour) => (
+              <option key={hour} value={hour}>
+                {hour}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className={styles.field}>

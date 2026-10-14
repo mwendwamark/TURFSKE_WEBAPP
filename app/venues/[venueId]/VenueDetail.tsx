@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import type { ReactNode } from "react";
+import BookingPanel from "./BookingPanel";
 import {
   Wifi,
   ArrowLeft,
@@ -99,6 +101,8 @@ type VenueDetailProps = {
 
 export default function VenueDetail({ venue, auth }: VenueDetailProps) {
   const activePitches = venue.pitches.filter((p) => p.status === "active");
+  const [openPitchId, setOpenPitchId] = useState<string | null>(null);
+  const openPitch = activePitches.find((p) => p.id === openPitchId);
   const amenityNames = venue.venue_amenities
     .map((link) => link.amenities?.name)
     .filter((name): name is string => Boolean(name));
@@ -115,6 +119,7 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
     `/venues/${venue.id}`,
   )}`;
   const isGuest = auth.kind === "guest";
+  const isPlayer = auth.kind === "player";
 
   function bookNowButton(className?: string) {
     if (isGuest) {
@@ -129,15 +134,19 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
         </Button>
       );
     }
-    if (auth.kind === "player") {
+    if (isPlayer) {
       return (
         <Button
           variant="primary"
           className={className}
-          disabled
           fullWidth={Boolean(className)}
+          onClick={() =>
+            document
+              .getElementById("pitches")
+              ?.scrollIntoView({ behavior: "smooth" })
+          }
         >
-          Booking is coming soon
+          Book now
         </Button>
       );
     }
@@ -145,15 +154,15 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
       <Button
         variant="primary"
         className={className}
-        disabled
         fullWidth={Boolean(className)}
+        disabled
       >
         Book now
       </Button>
     );
   }
 
-  function selectButton() {
+  function selectButton(pitchId: string) {
     if (isGuest) {
       return (
         <Button variant="outline" href={bookingHref}>
@@ -161,10 +170,15 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
         </Button>
       );
     }
-    if (auth.kind === "player") {
+    if (isPlayer) {
       return (
-        <Button variant="outline" disabled>
-          Booking is coming soon
+        <Button
+          variant="outline"
+          onClick={() =>
+            setOpenPitchId(openPitchId === pitchId ? null : pitchId)
+          }
+        >
+          {openPitchId === pitchId ? "Close" : "Select"}
         </Button>
       );
     }
@@ -178,7 +192,7 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
   const ctaNote = isGuest
     ? "Create an account to book"
     : auth.kind === "player"
-      ? "Bookings open soon"
+      ? "Pick a pitch and a time"
       : "Create a separate player account to book";
 
   return (
@@ -244,7 +258,7 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
             </section>
           )}
 
-          <section className={styles.section}>
+          <section className={styles.section} id="pitches">
             <h3 className={styles.section_title}>
               Pitches{" "}
               <span className={styles.section_count}>
@@ -306,12 +320,19 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
                       </div>
 
                       <div className={styles.pitch_actions}>
-                        {selectButton()}
+                        {selectButton(pitch.id)}{" "}
                       </div>
                     </li>
                   );
                 })}
               </ul>
+            )}
+            {isPlayer && openPitch && (
+              <BookingPanel
+                key={openPitch.id}
+                pitch={openPitch}
+                onClose={() => setOpenPitchId(null)}
+              />
             )}
           </section>
         </div>

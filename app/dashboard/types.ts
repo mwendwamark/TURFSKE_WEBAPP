@@ -26,6 +26,8 @@ export type Pitch = {
   price_per_hour: number | null;
   surface_type: string | null;
   status: string;
+  opens_at: string;
+  closes_at: string;
   pitch_images?: PitchImage[];
 };
 

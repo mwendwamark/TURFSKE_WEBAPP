@@ -339,6 +339,8 @@ export type PitchFormInput = {
   pricePerHour: string;
   surfaceType: string;
   status: string;
+  opens_at: string;
+  closes_at: string;
 };
 
 export async function createPitchAction(
@@ -372,6 +374,8 @@ export async function createPitchAction(
       price_per_hour: price,
       surface_type: input.surfaceType.trim() || null,
       status,
+      opens_at: input.opens_at,
+      closes_at: input.closes_at,
     })
     .select("id")
     .single();
@@ -420,6 +424,8 @@ export async function updatePitchAction(
       price_per_hour: price,
       surface_type: input.surfaceType.trim() || null,
       status,
+      opens_at: input.opens_at,
+      closes_at: input.closes_at,
     })
     .eq("id", pitchId);
 
