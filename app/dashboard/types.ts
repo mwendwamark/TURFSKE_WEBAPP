@@ -24,6 +24,9 @@ export type Pitch = {
   sport_type: string;
   size: string | null;
   price_per_hour: number | null;
+  pricing_model: "per_pitch" | "per_person";
+  min_players: number | null;
+  max_players: number | null;
   surface_type: string | null;
   status: string;
   opens_at: string;
@@ -39,6 +42,8 @@ export type Venue = {
   longitude: number | null;
   description: string | null;
   rules: string | null;
+  seating_capacity: number | null;
+  spectator_fee: number | null;
 };
 
 export type VenueAmenityLink = {

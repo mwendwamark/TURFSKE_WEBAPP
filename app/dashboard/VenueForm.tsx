@@ -30,6 +30,7 @@ type GeoMessage = { type: "success" | "error"; text: string };
 /** Short labels for the step indicator. Step 3's panel heading
  *  spells out "Description & Rules" in full. */
 const STEPS = ["Basics", "Location", "Details", "Amenities", "Photos"] as const;
+const AMENITIES_STEP = 3;
 
 export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueFormProps) {
   const editing = Boolean(venue);
@@ -52,9 +53,22 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
 
   // Custom amenities typed into the "Add a custom amenity" box.
   // Resolved against the amenities table (case-insensitively) at
-  // submit time — see resolveCustomAmenityIds in ./actions.
+  // submit time, see resolveCustomAmenityIds in ./actions.
   const [customAmenityInput, setCustomAmenityInput] = useState("");
   const [customAmenityNames, setCustomAmenityNames] = useState<string[]>([]);
+
+  // Spectator seating. Kept as text while typing, parsed on validate.
+  const [seatingCapacity, setSeatingCapacity] = useState<string>(
+    venue?.seating_capacity != null ? String(venue.seating_capacity) : "",
+  );
+  const [spectatorMode, setSpectatorMode] = useState<"free" | "charge">(
+    venue?.spectator_fee != null && venue.spectator_fee > 0 ? "charge" : "free",
+  );
+  const [spectatorFee, setSpectatorFee] = useState<string>(
+    venue?.spectator_fee != null && venue.spectator_fee > 0
+      ? String(venue.spectator_fee)
+      : "",
+  );
 
   const [geoBannerVisible, setGeoBannerVisible] = useState(!editing);
   const [locating, setLocating] = useState(false);
@@ -74,6 +88,59 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
   const [venueSaved, setVenueSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  // The seating fields only apply when "Spectator Seating" is ticked.
+  const hasSpectatorSeating = amenities.some(
+    (amenity) =>
+      selectedAmenityIds.includes(amenity.id) &&
+      amenity.name.trim().toLowerCase() === "spectator seating",
+  );
+
+  /** Parse and validate the seating fields. The server checks again. */
+  function readSeating(): {
+    capacity: number | null;
+    fee: number | null;
+    error: string | null;
+  } {
+    if (!hasSpectatorSeating) return { capacity: null, fee: null, error: null };
+
+    let capacity: number | null = null;
+    const capacityText = seatingCapacity.trim();
+    if (capacityText) {
+      const parsed = Number(capacityText);
+      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 5000) {
+        return {
+          capacity: null,
+          fee: null,
+          error: "Seating capacity must be a whole number between 1 and 5000.",
+        };
+      }
+      capacity = parsed;
+    }
+
+    if (spectatorMode === "free") return { capacity, fee: null, error: null };
+
+    const feeText = spectatorFee.trim();
+    if (!feeText) {
+      return {
+        capacity,
+        fee: null,
+        error: "Enter the fee per spectator, or choose Free.",
+      };
+    }
+    const fee = Number(feeText);
+    if (!Number.isFinite(fee) || fee < 0) {
+      return { capacity, fee: null, error: "The spectator fee must be zero or more." };
+    }
+    if (capacity === null) {
+      return {
+        capacity,
+        fee: null,
+        error: "Add a seating capacity before charging spectators.",
+      };
+    }
+    return { capacity, fee: Math.round(fee * 100) / 100, error: null };
+  }
+
   function toggleAmenity(amenityId: string) {
     setSelectedAmenityIds((prev) =>
       prev.includes(amenityId)
@@ -84,10 +151,10 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
 
   function addCustomAmenity() {
     // Normalise the input: trim, collapse whitespace, title-case each word
-    // (keeping fully‑uppercase words like "CCTV" unchanged).
+    // (keeping fully uppercase words like "CCTV" unchanged).
     const normalised = normalizeAmenityName(customAmenityInput);
 
-    // Validate length 2–40 characters.
+    // Validate length 2 to 40 characters.
     if (!normalised || normalised.length < 2 || normalised.length > 40) {
       setMessage({ type: "error", text: "Custom amenity must be between 2 and 40 characters." });
       return;
@@ -106,7 +173,7 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
       return;
     }
 
-    // Already queued as a custom amenity? Ignore the repeat (case‑insensitive).
+    // Already queued as a custom amenity? Ignore the repeat (case insensitive).
     const alreadyAdded = customAmenityNames.some(
       (queued) => queued.toLowerCase() === normalised.toLowerCase(),
     );
@@ -199,7 +266,7 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
   }
 
   /** Validate the current step before advancing. The server actions
-   *  re-validate everything on submit — this is just early feedback. */
+   *  re-validate everything on submit, this is just early feedback. */
   function goNext() {
     if (step === 0 && !name.trim()) {
       setMessage({ type: "error", text: "Please give your venue a name." });
@@ -221,8 +288,16 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
       if (!coordsValid) {
         setMessage({
           type: "error",
-          text: "Coordinates look off — lat must be between -90 and 90, long between -180 and 180.",
+          text: "Coordinates look off: lat must be between -90 and 90, long between -180 and 180.",
         });
+        return;
+      }
+    }
+
+    if (step === AMENITIES_STEP) {
+      const seating = readSeating();
+      if (seating.error) {
+        setMessage({ type: "error", text: seating.error });
         return;
       }
     }
@@ -232,14 +307,21 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    // Guard: if not on the last step, don't save — also covers pressing
-    // Enter in a text input on steps 1-4, which must not save the venue early.
+    // Guard: if not on the last step, don't save. This also covers pressing
+    // Enter in a text input on steps 1 to 4, which must not save the venue early.
     if (step < STEPS.length - 1) {
       event.preventDefault();
       return;
     }
     event.preventDefault();
     setMessage(null);
+
+    const seating = readSeating();
+    if (seating.error) {
+      setMessage({ type: "error", text: seating.error });
+      setStep(AMENITIES_STEP);
+      return;
+    }
 
     const input = {
       name,
@@ -250,6 +332,8 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
       rules,
       amenityIds: selectedAmenityIds,
       customAmenityNames,
+      seatingCapacity: seating.capacity,
+      spectatorFee: seating.fee,
     };
 
     startTransition(async () => {
@@ -301,7 +385,7 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
           type: "error",
           text:
             failedCount === pendingFiles.length
-              ? "Your venue was saved, but we couldn't upload its photos — please try adding them again by editing the venue."
+              ? "Your venue was saved, but we couldn't upload its photos. Please try adding them again by editing the venue."
               : `Your venue was saved, but ${failedCount} photo${failedCount === 1 ? "" : "s"} couldn't be uploaded. You can add them by editing the venue.`,
         });
         router.refresh();
@@ -442,7 +526,7 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
       </div>
 
       <p className={styles.field_hint}>
-        Coordinates are read-only by default so the location stays accurate — use your
+        Coordinates are read-only by default so the location stays accurate. Use your
         current location or switch to manual entry.
       </p>
     </>
@@ -470,84 +554,150 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
           rows={4}
           value={rules}
           onChange={(event) => setRules(event.target.value)}
-          placeholder="House rules players should know before booking — e.g. no metal studs, arrive 10 minutes early"
+          placeholder="House rules players should know before booking, e.g. no metal studs, arrive 10 minutes early"
         />
       </div>
 
       <p className={styles.field_hint}>
-        Optional — both are shown to players on your venue&apos;s page.
+        Optional. Both are shown to players on your venue&apos;s page.
       </p>
     </>
   );
 
   const amenitiesPanel = (
-    <div className={styles.field}>
-      <label>Amenities</label>
-      <div className={styles.checkbox_list}>
-        {amenities.map((amenity) => (
-          <label key={amenity.id} className={styles.checkbox_item}>
-            <input
-              type="checkbox"
-              checked={selectedAmenityIds.includes(amenity.id)}
-              onChange={() => toggleAmenity(amenity.id)}
-            />
-            {amenity.name}
-          </label>
-        ))}
-        {amenities.length === 0 && (
-          <p className={styles.field_hint}>No amenities available yet.</p>
+    <>
+      <div className={styles.field}>
+        <label>Amenities</label>
+        <div className={styles.checkbox_list}>
+          {amenities.map((amenity) => (
+            <label key={amenity.id} className={styles.checkbox_item}>
+              <input
+                type="checkbox"
+                checked={selectedAmenityIds.includes(amenity.id)}
+                onChange={() => toggleAmenity(amenity.id)}
+              />
+              {amenity.name}
+            </label>
+          ))}
+          {amenities.length === 0 && (
+            <p className={styles.field_hint}>No amenities available yet.</p>
+          )}
+        </div>
+
+        <div className={styles.custom_amenity_row}>
+          <input
+            id="custom-amenity"
+            type="text"
+            value={customAmenityInput}
+            onChange={(event) => setCustomAmenityInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                addCustomAmenity();
+              }
+            }}
+            placeholder="Add a custom amenity"
+            aria-label="Add a custom amenity"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            arrow={false}
+            onClick={addCustomAmenity}
+            disabled={!customAmenityInput.trim() || isPending}
+          >
+            Add
+          </Button>
+        </div>
+
+        {customAmenityNames.length > 0 && (
+          <div className={styles.custom_amenity_chips}>
+            {customAmenityNames.map((customName) => (
+              <span key={customName} className={styles.custom_amenity_chip}>
+                {customName}
+                <button
+                  type="button"
+                  className={styles.custom_amenity_remove}
+                  onClick={() => removeCustomAmenity(customName)}
+                  aria-label={`Remove ${customName}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
         )}
+
+        <p className={styles.field_hint}>
+          Don&apos;t see what you need? Type it above. If it already exists it&apos;ll
+          be matched, otherwise it&apos;s added to the catalog.
+        </p>
       </div>
 
-      <div className={styles.custom_amenity_row}>
-        <input
-          id="custom-amenity"
-          type="text"
-          value={customAmenityInput}
-          onChange={(event) => setCustomAmenityInput(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              addCustomAmenity();
-            }
-          }}
-          placeholder="Add a custom amenity"
-          aria-label="Add a custom amenity"
-        />
-        <Button
-          type="button"
-          variant="outline"
-          arrow={false}
-          onClick={addCustomAmenity}
-          disabled={!customAmenityInput.trim() || isPending}
-        >
-          Add
-        </Button>
-      </div>
+      {hasSpectatorSeating && (
+        <>
+          <div className={styles.field}>
+            <label htmlFor="venue-seating-capacity">
+              Seating capacity (number of seats)
+            </label>
+            <input
+              id="venue-seating-capacity"
+              name="seating_capacity"
+              type="number"
+              min="1"
+              max="5000"
+              inputMode="numeric"
+              value={seatingCapacity}
+              onChange={(event) => setSeatingCapacity(event.target.value)}
+              placeholder="e.g. 50"
+            />
+          </div>
 
-      {customAmenityNames.length > 0 && (
-        <div className={styles.custom_amenity_chips}>
-          {customAmenityNames.map((customName) => (
-            <span key={customName} className={styles.custom_amenity_chip}>
-              {customName}
+          <div className={styles.field}>
+            <span>Spectator entry</span>
+            <div
+              className={styles.toggle_group}
+              role="group"
+              aria-label="Spectator entry"
+            >
               <button
                 type="button"
-                className={styles.custom_amenity_remove}
-                onClick={() => removeCustomAmenity(customName)}
-                aria-label={`Remove ${customName}`}
+                className={`${styles.toggle_btn} ${spectatorMode === "free" ? styles.toggle_btn_active : ""}`}
+                onClick={() => setSpectatorMode("free")}
               >
-                ×
+                Free
               </button>
-            </span>
-          ))}
-        </div>
-      )}
+              <button
+                type="button"
+                className={`${styles.toggle_btn} ${spectatorMode === "charge" ? styles.toggle_btn_active : ""}`}
+                onClick={() => setSpectatorMode("charge")}
+              >
+                Charge
+              </button>
+            </div>
+            <p className={styles.field_hint}>
+              Charging adds a fee per spectator to the booking total, so you earn more.
+            </p>
+          </div>
 
-      <p className={styles.field_hint}>
-        Don&apos;t see what you need? Type it above — if it already exists it&apos;ll
-        be matched, otherwise it&apos;s added to the catalog.
-      </p>
-    </div>
+          {spectatorMode === "charge" && (
+            <div className={styles.field}>
+              <label htmlFor="venue-spectator-fee">Fee per spectator (KES)</label>
+              <input
+                id="venue-spectator-fee"
+                name="spectator_fee"
+                type="number"
+                min="0"
+                inputMode="numeric"
+                value={spectatorFee}
+                onChange={(event) => setSpectatorFee(event.target.value)}
+                placeholder="e.g. 100"
+              />
+            </div>
+          )}
+        </>
+      )}
+    </>
   );
 
   const photosPanel = (
@@ -575,7 +725,7 @@ export default function VenueForm({ amenities, venue, onClose, onSaved }: VenueF
       onClose={onClose}
     >
       <form className={styles.form} onSubmit={handleSubmit}>
-        {/* Step indicator — click any step to jump to it. All field
+        {/* Step indicator: click any step to jump to it. All field
             state is held above, so jumping never loses entered data. */}
         <div className={styles.steps_indicator}>
           <p className={styles.steps_text}>

@@ -1,0 +1,75 @@
+.wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--off-white);
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.title {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--black);
+  letter-spacing: -0.2px;
+}
+
+.status_text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--grey);
+}
+
+.success_title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--primary_green);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: var(--white);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.88rem;
+  color: var(--black);
+}
+
+.row_label {
+  color: var(--grey);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.pulse {
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}

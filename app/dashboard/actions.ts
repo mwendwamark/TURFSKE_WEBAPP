@@ -3,11 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
-import type {
-  ActionResult,
-  ActionResultWithData,
-  BankOption,
-} from "./types";
+import type { ActionResult, ActionResultWithData, BankOption } from "./types";
 
 const PAYSTACK_API = "https://api.paystack.co";
 
@@ -29,7 +25,10 @@ async function getSession() {
   return { supabase, user: data.user };
 }
 
-async function isManagerProfile(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+async function isManagerProfile(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+) {
   const { data } = await supabase
     .from("profiles")
     .select("role")
@@ -54,6 +53,8 @@ export type VenueFormInput = {
    * an existing match is linked, anything new gets a row first.
    */
   customAmenityNames: string[];
+  seatingCapacity?: number | null;
+  spectatorFee?: number | null;
 };
 
 /**
@@ -78,7 +79,10 @@ async function resolveCustomAmenityIds(
     .select("id, name");
 
   if (fetchError) {
-    return { ids: [], error: "We couldn't save the venue's amenities. Please try again." };
+    return {
+      ids: [],
+      error: "We couldn't save the venue's amenities. Please try again.",
+    };
   }
 
   const byLowercase = new Map<string, string>();
@@ -104,7 +108,10 @@ async function resolveCustomAmenityIds(
       .single();
 
     if (insertError || !inserted) {
-      return { ids: [], error: "We couldn't save the venue's amenities. Please try again." };
+      return {
+        ids: [],
+        error: "We couldn't save the venue's amenities. Please try again.",
+      };
     }
 
     byLowercase.set(key, inserted.id);
@@ -114,6 +121,26 @@ async function resolveCustomAmenityIds(
   return { ids, error: null };
 }
 
+function checkSeating(
+  seatingCapacity: number | null | undefined,
+  spectatorFee: number | null | undefined,
+): string | null {
+  const seats = seatingCapacity ?? null;
+  const fee = spectatorFee ?? null;
+  if (
+    seats !== null &&
+    (!Number.isInteger(seats) || seats < 1 || seats > 5000)
+  ) {
+    return "Seating capacity must be a whole number between 1 and 5000.";
+  }
+  if (fee !== null && (!Number.isFinite(fee) || fee < 0)) {
+    return "The spectator fee must be zero or more.";
+  }
+  if (fee !== null && seats === null) {
+    return "Add a seating capacity before setting a spectator fee.";
+  }
+  return null;
+}
 export async function createVenueAction(
   input: VenueFormInput,
 ): Promise<ActionResultWithData<{ venueId: string }>> {
@@ -130,10 +157,17 @@ export async function createVenueAction(
     return { success: false, error: "Please give your venue a name." };
   }
 
+  const seatingError = checkSeating(input.seatingCapacity, input.spectatorFee);
+  if (seatingError) return { success: false, error: seatingError };
+
   const latitude = cleanCoordinate(input.latitude, 90, -90);
   const longitude = cleanCoordinate(input.longitude, 180, -180);
   if (latitude === null || longitude === null) {
-    return { success: false, error: "Coordinates look off — lat must be between -90 and 90, long between -180 and 180." };
+    return {
+      success: false,
+      error:
+        "Coordinates look off — lat must be between -90 and 90, long between -180 and 180.",
+    };
   }
 
   const { data: venue, error: insertError } = await supabase
@@ -151,7 +185,10 @@ export async function createVenueAction(
     .single();
 
   if (insertError || !venue) {
-    return { success: false, error: "We couldn't save your venue. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't save your venue. Please try again.",
+    };
   }
 
   // Checked amenities + any custom ones typed into the form. Custom
@@ -167,9 +204,47 @@ export async function createVenueAction(
 
   const amenityIds = [...new Set([...input.amenityIds, ...customIds])];
 
+  // Check if "Spectator Seating" is among the selected amenity names
+  const { data: amenityNames } = await supabase
+    .from("amenities")
+    .select("name")
+    .in("id", amenityIds);
+
+  const hasSpectatorSeating =
+    amenityNames?.some(
+      (a: { name: string }) =>
+        a.name.trim().toLowerCase() === "spectator seating",
+    ) ?? false;
+
+  // Enforce server side: if Spectator Seating is NOT selected, write both as null
+  const effectiveSeatingCapacity = hasSpectatorSeating
+    ? (input.seatingCapacity ?? null)
+    : null;
+  const effectiveSpectatorFee = hasSpectatorSeating
+    ? (input.spectatorFee ?? null)
+    : null;
+
+  // Sync amenities
   const amenityError = await syncVenueAmenities(supabase, venue.id, amenityIds);
   if (amenityError) {
     return { success: false, error: amenityError };
+  }
+
+  // Write seating_capacity and spectator_fee to the venues table
+  const { error: updateError } = await supabase
+    .from("venues")
+    .update({
+      seating_capacity: effectiveSeatingCapacity,
+      spectator_fee: effectiveSpectatorFee,
+    })
+    .eq("id", venue.id);
+
+  if (updateError) {
+    return {
+      success: false,
+      error:
+        "We couldn't save the venue's seating information. Please try again.",
+    };
   }
 
   revalidatePath("/dashboard");
@@ -184,16 +259,24 @@ export async function updateVenueAction(
   if (!user) return { success: false, error: "Please sign in to continue." };
 
   if (!(await venueBelongsToManager(supabase, venueId, user.id))) {
-    return { success: false, error: "We couldn't find that venue. It may have been removed." };
+    return {
+      success: false,
+      error: "We couldn't find that venue. It may have been removed.",
+    };
   }
 
   const name = input.name.trim();
   if (!name) return { success: false, error: "Please give your venue a name." };
-
+  const seatingError = checkSeating(input.seatingCapacity, input.spectatorFee);
+  if (seatingError) return { success: false, error: seatingError };
   const latitude = cleanCoordinate(input.latitude, 90, -90);
   const longitude = cleanCoordinate(input.longitude, 180, -180);
   if (latitude === null || longitude === null) {
-    return { success: false, error: "Coordinates look off — lat must be between -90 and 90, long between -180 and 180." };
+    return {
+      success: false,
+      error:
+        "Coordinates look off — lat must be between -90 and 90, long between -180 and 180.",
+    };
   }
 
   const { error: updateError } = await supabase
@@ -209,7 +292,10 @@ export async function updateVenueAction(
     .eq("id", venueId);
 
   if (updateError) {
-    return { success: false, error: "We couldn't update your venue. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't update your venue. Please try again.",
+    };
   }
 
   // Checked amenities + any custom ones typed into the form.
@@ -226,44 +312,56 @@ export async function updateVenueAction(
 
   const amenityIds = [...new Set([...input.amenityIds, ...customIds])];
 
-  // Diff the amenity selections against existing venue_amenities rows:
-  // add what was checked, remove what was unchecked.
-  const { data: existing } = await supabase
-    .from("venue_amenities")
-    .select("amenity_id")
-    .eq("venue_id", venueId);
+  // Check if "Spectator Seating" is among the selected amenity names
+  const { data: amenityNames } = await supabase
+    .from("amenities")
+    .select("name")
+    .in("id", amenityIds);
 
-  const existingIds = (existing ?? []).map((row) => row.amenity_id);
-  const toRemove = existingIds.filter((id) => !amenityIds.includes(id));
-  const toAdd = amenityIds.filter((id) => !existingIds.includes(id));
+  const hasSpectatorSeating =
+    amenityNames?.some(
+      (a: { name: string }) =>
+        a.name.trim().toLowerCase() === "spectator seating",
+    ) ?? false;
 
-  if (toRemove.length > 0) {
-    const { error: deleteError } = await supabase
-      .from("venue_amenities")
-      .delete()
-      .eq("venue_id", venueId)
-      .in("amenity_id", toRemove);
+  // Enforce server side: if Spectator Seating is NOT selected, write both as null
+  const effectiveSeatingCapacity = hasSpectatorSeating
+    ? (input.seatingCapacity ?? null)
+    : null;
+  const effectiveSpectatorFee = hasSpectatorSeating
+    ? (input.spectatorFee ?? null)
+    : null;
 
-    if (deleteError) {
-      return { success: false, error: "We couldn't update the venue's amenities. Please try again." };
-    }
+  // Sync amenities
+  const amenityError = await syncVenueAmenities(supabase, venueId, amenityIds);
+  if (amenityError) {
+    return { success: false, error: amenityError };
   }
 
-  if (toAdd.length > 0) {
-    const { error: insertError } = await supabase
-      .from("venue_amenities")
-      .insert(toAdd.map((amenityId) => ({ venue_id: venueId, amenity_id: amenityId })));
+  // Write seating_capacity and spectator_fee to the venues table
+  const { error: feeError } = await supabase
+    .from("venues")
+    .update({
+      seating_capacity: effectiveSeatingCapacity,
+      spectator_fee: effectiveSpectatorFee,
+    })
+    .eq("id", venueId);
 
-    if (insertError) {
-      return { success: false, error: "We couldn't update the venue's amenities. Please try again." };
-    }
+  if (feeError) {
+    return {
+      success: false,
+      error:
+        "We couldn't update the venue's seating information. Please try again.",
+    };
   }
 
   revalidatePath("/dashboard");
   return { success: true };
 }
 
-export async function deleteVenueAction(venueId: string): Promise<ActionResult> {
+export async function deleteVenueAction(
+  venueId: string,
+): Promise<ActionResult> {
   const { supabase, user } = await getSession();
   if (!user) return { success: false, error: "Please sign in to continue." };
 
@@ -279,15 +377,21 @@ export async function deleteVenueAction(venueId: string): Promise<ActionResult> 
     .maybeSingle();
 
   if (!venue) {
-    return { success: false, error: "We couldn't find that venue. It may have been removed." };
+    return {
+      success: false,
+      error: "We couldn't find that venue. It may have been removed.",
+    };
   }
 
   const paths: string[] = [];
   (venue.venue_images ?? []).forEach((image: { storage_path: string }) =>
     paths.push(image.storage_path),
   );
-  (venue.pitches ?? []).forEach((pitch: { pitch_images: { storage_path: string }[] | null }) =>
-    (pitch.pitch_images ?? []).forEach((image) => paths.push(image.storage_path)),
+  (venue.pitches ?? []).forEach(
+    (pitch: { pitch_images: { storage_path: string }[] | null }) =>
+      (pitch.pitch_images ?? []).forEach((image) =>
+        paths.push(image.storage_path),
+      ),
   );
 
   // Storage first — if the files can't be removed we stop here rather than
@@ -296,7 +400,8 @@ export async function deleteVenueAction(venueId: string): Promise<ActionResult> 
   if (!cleaned) {
     return {
       success: false,
-      error: "We couldn't remove this venue's photos, so nothing was deleted. Please try again.",
+      error:
+        "We couldn't remove this venue's photos, so nothing was deleted. Please try again.",
     };
   }
 
@@ -307,7 +412,10 @@ export async function deleteVenueAction(venueId: string): Promise<ActionResult> 
     .eq("manager_id", user.id);
 
   if (error) {
-    return { success: false, error: "We couldn't delete that venue. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't delete that venue. Please try again.",
+    };
   }
 
   revalidatePath("/dashboard");
@@ -321,13 +429,31 @@ async function syncVenueAmenities(
   venueId: string,
   amenityIds: string[],
 ): Promise<string | null> {
-  if (amenityIds.length === 0) return null;
+  const failure = "We couldn't save the venue's amenities. Please try again.";
 
-  const { error } = await supabase.from("venue_amenities").insert(
-    amenityIds.map((amenityId) => ({ venue_id: venueId, amenity_id: amenityId })),
-  );
+  if (amenityIds.length > 0) {
+    const { error: upsertError } = await supabase
+      .from("venue_amenities")
+      .upsert(
+        amenityIds.map((amenityId) => ({
+          venue_id: venueId,
+          amenity_id: amenityId,
+        })),
+        { onConflict: "venue_id,amenity_id", ignoreDuplicates: true },
+      );
+    if (upsertError) return failure;
+  }
 
-  return error ? "We couldn't save the venue's amenities. Please try again." : null;
+  const removal = supabase
+    .from("venue_amenities")
+    .delete()
+    .eq("venue_id", venueId);
+  const { error: deleteError } =
+    amenityIds.length > 0
+      ? await removal.not("amenity_id", "in", `(${amenityIds.join(",")})`)
+      : await removal;
+
+  return deleteError ? failure : null;
 }
 
 // ── Pitches ───────────────────────────────────────────────
@@ -337,6 +463,9 @@ export type PitchFormInput = {
   sportType: string;
   size: string;
   pricePerHour: string;
+  pricingModel: "per_pitch" | "per_person";
+  minPlayers: number | null;
+  maxPlayers: number | null;
   surfaceType: string;
   status: string;
   opens_at: string;
@@ -351,7 +480,10 @@ export async function createPitchAction(
   if (!user) return { success: false, error: "Please sign in to continue." };
 
   if (!(await venueBelongsToManager(supabase, venueId, user.id))) {
-    return { success: false, error: "We couldn't find that venue. It may have been removed." };
+    return {
+      success: false,
+      error: "We couldn't find that venue. It may have been removed.",
+    };
   }
 
   const name = input.name.trim();
@@ -360,6 +492,43 @@ export async function createPitchAction(
   const price = cleanPrice(input.pricePerHour);
   if (price === null) {
     return { success: false, error: "Please enter a valid price per hour." };
+  }
+
+  // Validate min/max players based on pricing model
+  if (input.pricingModel === "per_person") {
+    if (input.minPlayers == null || input.maxPlayers == null) {
+      return {
+        success: false,
+        error:
+          "Minimum and maximum players are required for per-person pricing.",
+      };
+    }
+    if (input.minPlayers < 1 || input.minPlayers > 200) {
+      return {
+        success: false,
+        error: "Minimum players must be between 1 and 200.",
+      };
+    }
+    if (input.maxPlayers < 1 || input.maxPlayers > 200) {
+      return {
+        success: false,
+        error: "Maximum players must be between 1 and 200.",
+      };
+    }
+    if (input.minPlayers > input.maxPlayers) {
+      return {
+        success: false,
+        error: "Minimum players must be less than or equal to maximum players.",
+      };
+    }
+  } else if (
+    input.maxPlayers != null &&
+    (input.maxPlayers < 1 || input.maxPlayers > 200)
+  ) {
+    return {
+      success: false,
+      error: "Maximum players must be between 1 and 200.",
+    };
   }
 
   const status = input.status === "inactive" ? "inactive" : "active";
@@ -372,6 +541,13 @@ export async function createPitchAction(
       sport_type: input.sportType.trim() || "football",
       size: input.size || null,
       price_per_hour: price,
+      pricing_model: input.pricingModel,
+      min_players:
+        input.pricingModel === "per_person" ? input.minPlayers : null,
+      max_players:
+        input.pricingModel === "per_person"
+          ? input.maxPlayers
+          : input.maxPlayers,
       surface_type: input.surfaceType.trim() || null,
       status,
       opens_at: input.opens_at,
@@ -381,7 +557,10 @@ export async function createPitchAction(
     .single();
 
   if (error || !pitch) {
-    return { success: false, error: "We couldn't save your pitch. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't save your pitch. Please try again.",
+    };
   }
 
   revalidatePath("/dashboard");
@@ -401,8 +580,14 @@ export async function updatePitchAction(
     .eq("id", pitchId)
     .maybeSingle();
 
-  if (!pitch || !(await venueBelongsToManager(supabase, pitch.venue_id, user.id))) {
-    return { success: false, error: "We couldn't find that pitch. It may have been removed." };
+  if (
+    !pitch ||
+    !(await venueBelongsToManager(supabase, pitch.venue_id, user.id))
+  ) {
+    return {
+      success: false,
+      error: "We couldn't find that pitch. It may have been removed.",
+    };
   }
 
   const name = input.name.trim();
@@ -411,6 +596,43 @@ export async function updatePitchAction(
   const price = cleanPrice(input.pricePerHour);
   if (price === null) {
     return { success: false, error: "Please enter a valid price per hour." };
+  }
+
+  // Validate min/max players based on pricing model
+  if (input.pricingModel === "per_person") {
+    if (input.minPlayers == null || input.maxPlayers == null) {
+      return {
+        success: false,
+        error:
+          "Minimum and maximum players are required for per-person pricing.",
+      };
+    }
+    if (input.minPlayers < 1 || input.minPlayers > 200) {
+      return {
+        success: false,
+        error: "Minimum players must be between 1 and 200.",
+      };
+    }
+    if (input.maxPlayers < 1 || input.maxPlayers > 200) {
+      return {
+        success: false,
+        error: "Maximum players must be between 1 and 200.",
+      };
+    }
+    if (input.minPlayers > input.maxPlayers) {
+      return {
+        success: false,
+        error: "Minimum players must be less than or equal to maximum players.",
+      };
+    }
+  } else if (
+    input.maxPlayers != null &&
+    (input.maxPlayers < 1 || input.maxPlayers > 200)
+  ) {
+    return {
+      success: false,
+      error: "Maximum players must be between 1 and 200.",
+    };
   }
 
   const status = input.status === "inactive" ? "inactive" : "active";
@@ -422,6 +644,13 @@ export async function updatePitchAction(
       sport_type: input.sportType.trim() || "football",
       size: input.size || null,
       price_per_hour: price,
+      pricing_model: input.pricingModel,
+      min_players:
+        input.pricingModel === "per_person" ? input.minPlayers : null,
+      max_players:
+        input.pricingModel === "per_person"
+          ? input.maxPlayers
+          : input.maxPlayers,
       surface_type: input.surfaceType.trim() || null,
       status,
       opens_at: input.opens_at,
@@ -430,14 +659,19 @@ export async function updatePitchAction(
     .eq("id", pitchId);
 
   if (error) {
-    return { success: false, error: "We couldn't update your pitch. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't update your pitch. Please try again.",
+    };
   }
 
   revalidatePath("/dashboard");
   return { success: true };
 }
 
-export async function deletePitchAction(pitchId: string): Promise<ActionResult> {
+export async function deletePitchAction(
+  pitchId: string,
+): Promise<ActionResult> {
   const { supabase, user } = await getSession();
   if (!user) return { success: false, error: "Please sign in to continue." };
 
@@ -445,7 +679,10 @@ export async function deletePitchAction(pitchId: string): Promise<ActionResult> 
   // pitch action.
   const venueId = await venueIdForPitch(supabase, pitchId);
   if (!venueId || !(await venueBelongsToManager(supabase, venueId, user.id))) {
-    return { success: false, error: "We couldn't find that pitch. It may have been removed." };
+    return {
+      success: false,
+      error: "We couldn't find that pitch. It may have been removed.",
+    };
   }
 
   const { data: images } = await supabase
@@ -453,13 +690,16 @@ export async function deletePitchAction(pitchId: string): Promise<ActionResult> 
     .select("storage_path")
     .eq("pitch_id", pitchId);
 
-  const paths = (images ?? []).map((image: { storage_path: string }) => image.storage_path);
+  const paths = (images ?? []).map(
+    (image: { storage_path: string }) => image.storage_path,
+  );
 
   const cleaned = await removeMediaFiles(supabase, paths, `${venueId}/`);
   if (!cleaned) {
     return {
       success: false,
-      error: "We couldn't remove this pitch's photos, so nothing was deleted. Please try again.",
+      error:
+        "We couldn't remove this pitch's photos, so nothing was deleted. Please try again.",
     };
   }
 
@@ -470,7 +710,10 @@ export async function deletePitchAction(pitchId: string): Promise<ActionResult> 
     .eq("venue_id", venueId);
 
   if (error) {
-    return { success: false, error: "We couldn't delete that pitch. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't delete that pitch. Please try again.",
+    };
   }
 
   revalidatePath("/dashboard");
@@ -491,21 +734,35 @@ export async function attachVenueImagesAction(
   if (!user) return { success: false, error: "Please sign in to continue." };
 
   if (!(await venueBelongsToManager(supabase, venueId, user.id))) {
-    return { success: false, error: "We couldn't find that venue. It may have been removed." };
+    return {
+      success: false,
+      error: "We couldn't find that venue. It may have been removed.",
+    };
   }
 
   const valid = images
     .filter(({ storagePath }) => storagePath.startsWith(`${venueId}/venue/`))
-    .map(({ storagePath, position }) => ({ venue_id: venueId, storage_path: storagePath, position }));
+    .map(({ storagePath, position }) => ({
+      venue_id: venueId,
+      storage_path: storagePath,
+      position,
+    }));
 
   if (valid.length === 0 && images.length > 0) {
-    return { success: false, error: "One or more images weren't in the right location and couldn't be saved." };
+    return {
+      success: false,
+      error:
+        "One or more images weren't in the right location and couldn't be saved.",
+    };
   }
 
   if (valid.length > 0) {
     const { error } = await supabase.from("venue_images").insert(valid);
     if (error) {
-      return { success: false, error: "We couldn't save those images. Please try again." };
+      return {
+        success: false,
+        error: "We couldn't save those images. Please try again.",
+      };
     }
   }
 
@@ -522,22 +779,36 @@ export async function attachPitchImagesAction(
 
   const venueId = await venueIdForPitch(supabase, pitchId);
   if (!venueId || !(await venueBelongsToManager(supabase, venueId, user.id))) {
-    return { success: false, error: "We couldn't find that pitch. It may have been removed." };
+    return {
+      success: false,
+      error: "We couldn't find that pitch. It may have been removed.",
+    };
   }
 
   const prefix = `${venueId}/pitches/${pitchId}/`;
   const valid = images
     .filter(({ storagePath }) => storagePath.startsWith(prefix))
-    .map(({ storagePath, position }) => ({ pitch_id: pitchId, storage_path: storagePath, position }));
+    .map(({ storagePath, position }) => ({
+      pitch_id: pitchId,
+      storage_path: storagePath,
+      position,
+    }));
 
   if (valid.length === 0 && images.length > 0) {
-    return { success: false, error: "One or more images weren't in the right location and couldn't be saved." };
+    return {
+      success: false,
+      error:
+        "One or more images weren't in the right location and couldn't be saved.",
+    };
   }
 
   if (valid.length > 0) {
     const { error } = await supabase.from("pitch_images").insert(valid);
     if (error) {
-      return { success: false, error: "We couldn't save those images. Please try again." };
+      return {
+        success: false,
+        error: "We couldn't save those images. Please try again.",
+      };
     }
   }
 
@@ -553,11 +824,17 @@ export async function deleteVenueImageAction(
   if (!user) return { success: false, error: "Please sign in to continue." };
 
   if (!(await venueBelongsToManager(supabase, venueId, user.id))) {
-    return { success: false, error: "We couldn't find that venue. It may have been removed." };
+    return {
+      success: false,
+      error: "We couldn't find that venue. It may have been removed.",
+    };
   }
 
   if (!image.storagePath.startsWith(`${venueId}/venue/`)) {
-    return { success: false, error: "That image couldn't be removed because its location isn't valid." };
+    return {
+      success: false,
+      error: "That image couldn't be removed because its location isn't valid.",
+    };
   }
 
   await supabase.storage.from(IMAGE_BUCKET).remove([image.storagePath]);
@@ -569,7 +846,10 @@ export async function deleteVenueImageAction(
     .eq("venue_id", venueId);
 
   if (error) {
-    return { success: false, error: "We couldn't remove that image. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't remove that image. Please try again.",
+    };
   }
 
   revalidatePath("/dashboard");
@@ -585,11 +865,17 @@ export async function deletePitchImageAction(
 
   const venueId = await venueIdForPitch(supabase, pitchId);
   if (!venueId || !(await venueBelongsToManager(supabase, venueId, user.id))) {
-    return { success: false, error: "We couldn't find that pitch. It may have been removed." };
+    return {
+      success: false,
+      error: "We couldn't find that pitch. It may have been removed.",
+    };
   }
 
   if (!image.storagePath.startsWith(`${venueId}/pitches/${pitchId}/`)) {
-    return { success: false, error: "That image couldn't be removed because its location isn't valid." };
+    return {
+      success: false,
+      error: "That image couldn't be removed because its location isn't valid.",
+    };
   }
 
   await supabase.storage.from(IMAGE_BUCKET).remove([image.storagePath]);
@@ -601,7 +887,10 @@ export async function deletePitchImageAction(
     .eq("pitch_id", pitchId);
 
   if (error) {
-    return { success: false, error: "We couldn't remove that image. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't remove that image. Please try again.",
+    };
   }
 
   revalidatePath("/dashboard");
@@ -616,16 +905,26 @@ export async function reorderVenueImagesAction(
   if (!user) return { success: false, error: "Please sign in to continue." };
 
   if (!(await venueBelongsToManager(supabase, venueId, user.id))) {
-    return { success: false, error: "We couldn't find that venue. It may have been removed." };
+    return {
+      success: false,
+      error: "We couldn't find that venue. It may have been removed.",
+    };
   }
 
   const updates = orderedIds.map((id, index) =>
-    supabase.from("venue_images").update({ position: index }).eq("id", id).eq("venue_id", venueId),
+    supabase
+      .from("venue_images")
+      .update({ position: index })
+      .eq("id", id)
+      .eq("venue_id", venueId),
   );
 
   const results = await Promise.all(updates);
   if (results.some((r) => r.error)) {
-    return { success: false, error: "We couldn't reorder those images. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't reorder those images. Please try again.",
+    };
   }
 
   revalidatePath("/dashboard");
@@ -641,16 +940,26 @@ export async function reorderPitchImagesAction(
 
   const venueId = await venueIdForPitch(supabase, pitchId);
   if (!venueId || !(await venueBelongsToManager(supabase, venueId, user.id))) {
-    return { success: false, error: "We couldn't find that pitch. It may have been removed." };
+    return {
+      success: false,
+      error: "We couldn't find that pitch. It may have been removed.",
+    };
   }
 
   const updates = orderedIds.map((id, index) =>
-    supabase.from("pitch_images").update({ position: index }).eq("id", id).eq("pitch_id", pitchId),
+    supabase
+      .from("pitch_images")
+      .update({ position: index })
+      .eq("id", id)
+      .eq("pitch_id", pitchId),
   );
 
   const results = await Promise.all(updates);
   if (results.some((r) => r.error)) {
-    return { success: false, error: "We couldn't reorder those images. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't reorder those images. Please try again.",
+    };
   }
 
   revalidatePath("/dashboard");
@@ -668,7 +977,10 @@ export async function getPaystackBanks(): Promise<
 
   const secret = process.env.PAYSTACK_SECRET_KEY;
   if (!secret) {
-    return { success: false, error: "Payouts aren't available yet. Please try again later." };
+    return {
+      success: false,
+      error: "Payouts aren't available yet. Please try again later.",
+    };
   }
 
   let res: Response;
@@ -678,16 +990,27 @@ export async function getPaystackBanks(): Promise<
       cache: "no-store",
     });
   } catch {
-    return { success: false, error: "We couldn't reach the payout service. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't reach the payout service. Please try again.",
+    };
   }
 
   if (!res.ok) {
-    return { success: false, error: "We couldn't load the bank list right now. Please try again in a moment." };
+    return {
+      success: false,
+      error:
+        "We couldn't load the bank list right now. Please try again in a moment.",
+    };
   }
 
   const body = await res.json().catch(() => null);
   if (!body || body.status !== true || !Array.isArray(body.data)) {
-    return { success: false, error: "We couldn't load the bank list right now. Please try again in a moment." };
+    return {
+      success: false,
+      error:
+        "We couldn't load the bank list right now. Please try again in a moment.",
+    };
   }
 
   const banks: BankOption[] = body.data
@@ -707,11 +1030,16 @@ export async function getPaystackBanks(): Promise<
 }
 
 function isMobileMoneyEntry(bank: Record<string, unknown>): boolean {
-  if (typeof bank.type === "string" && bank.type.toLowerCase() === "mobile_money") {
+  if (
+    typeof bank.type === "string" &&
+    bank.type.toLowerCase() === "mobile_money"
+  ) {
     return true;
   }
   if (typeof bank.name !== "string") return false;
-  return /mobile money|m-pesa|mpesa|safaricom|airtel money|airtel-mmoney|equitel/i.test(bank.name);
+  return /mobile money|m-pesa|mpesa|safaricom|airtel money|airtel-mmoney|equitel/i.test(
+    bank.name,
+  );
 }
 
 export type PayoutSetupInput = {
@@ -719,7 +1047,9 @@ export type PayoutSetupInput = {
   accountNumber: string;
 };
 
-export async function setPayoutAccountAction(input: PayoutSetupInput): Promise<ActionResult> {
+export async function setPayoutAccountAction(
+  input: PayoutSetupInput,
+): Promise<ActionResult> {
   const { supabase, user } = await getSession();
   if (!user) return { success: false, error: "Please sign in to continue." };
 
@@ -731,12 +1061,18 @@ export async function setPayoutAccountAction(input: PayoutSetupInput): Promise<A
   const bankCode = input.bankCode.trim();
   const accountNumber = input.accountNumber.trim();
   if (!bankCode || !accountNumber) {
-    return { success: false, error: "Please choose a bank and enter your account number." };
+    return {
+      success: false,
+      error: "Please choose a bank and enter your account number.",
+    };
   }
 
   const secret = process.env.PAYSTACK_SECRET_KEY;
   if (!secret) {
-    return { success: false, error: "Payouts aren't available yet. Please try again later." };
+    return {
+      success: false,
+      error: "Payouts aren't available yet. Please try again later.",
+    };
   }
 
   const businessName = await resolveBusinessName(supabase, user.id);
@@ -759,7 +1095,10 @@ export async function setPayoutAccountAction(input: PayoutSetupInput): Promise<A
       cache: "no-store",
     });
   } catch {
-    return { success: false, error: "We couldn't reach the payout service. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't reach the payout service. Please try again.",
+    };
   }
 
   const body = await res.json().catch(() => null);
@@ -770,7 +1109,10 @@ export async function setPayoutAccountAction(input: PayoutSetupInput): Promise<A
 
   const subaccountCode = body?.data?.subaccount_code;
   if (typeof subaccountCode !== "string" || !subaccountCode) {
-    return { success: false, error: "We couldn't finish setting up payouts. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't finish setting up payouts. Please try again.",
+    };
   }
 
   const saved = await saveManagerProfile(supabase, user.id, {
@@ -803,7 +1145,9 @@ export type SettingsInput = {
   businessName: string;
 };
 
-export async function updateSettingsAction(input: SettingsInput): Promise<ActionResult> {
+export async function updateSettingsAction(
+  input: SettingsInput,
+): Promise<ActionResult> {
   const { supabase, user } = await getSession();
   if (!user) return { success: false, error: "Please sign in to continue." };
 
@@ -827,18 +1171,22 @@ export async function updateSettingsAction(input: SettingsInput): Promise<Action
     .eq("id", user.id);
 
   if (profileError) {
-    return { success: false, error: "We couldn't update your profile. Please try again." };
+    return {
+      success: false,
+      error: "We couldn't update your profile. Please try again.",
+    };
   }
 
   if (profile?.role === "manager" && input.businessName.trim()) {
-    const saved = await saveManagerProfile(
-      supabase,
-      user.id,
-      { business_name: input.businessName.trim() },
-    );
+    const saved = await saveManagerProfile(supabase, user.id, {
+      business_name: input.businessName.trim(),
+    });
 
     if (!saved) {
-      return { success: false, error: "We couldn't update your business name. Please try again." };
+      return {
+        success: false,
+        error: "We couldn't update your business name. Please try again.",
+      };
     }
   }
 
@@ -860,7 +1208,9 @@ async function removeMediaFiles(
   paths: string[],
   prefix: string,
 ): Promise<boolean> {
-  const owned = paths.filter((path) => typeof path === "string" && path.startsWith(prefix));
+  const owned = paths.filter(
+    (path) => typeof path === "string" && path.startsWith(prefix),
+  );
   if (owned.length === 0) return true;
 
   const { error } = await supabase.storage.from(IMAGE_BUCKET).remove(owned);
@@ -930,8 +1280,13 @@ async function saveManagerProfile(
     .maybeSingle();
 
   const result = existing
-    ? await supabase.from("manager_profiles").update(patch).eq("user_id", userId)
-    : await supabase.from("manager_profiles").insert({ user_id: userId, ...patch });
+    ? await supabase
+        .from("manager_profiles")
+        .update(patch)
+        .eq("user_id", userId)
+    : await supabase
+        .from("manager_profiles")
+        .insert({ user_id: userId, ...patch });
 
   return !result.error;
 }
@@ -961,7 +1316,11 @@ function friendlyPaystackError(message: unknown): string {
   if (text.includes("business_name") || text.includes("business name")) {
     return "We couldn't set up payouts with that business name. Please try again or contact support.";
   }
-  if (text.includes("duplicate") || text.includes("already exists") || text.includes("already linked")) {
+  if (
+    text.includes("duplicate") ||
+    text.includes("already exists") ||
+    text.includes("already linked")
+  ) {
     return "This account already has a payout set up. If you think this is a mistake, contact support.";
   }
   return "We couldn't set up payouts right now. Please try again or contact support.";

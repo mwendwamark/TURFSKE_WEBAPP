@@ -18,7 +18,7 @@ export default async function PublicVenuePage({
   const { data } = await supabase
     .from("venues")
     .select(
-      "id, name, address_text, latitude, longitude, description, rules, venue_images(id, venue_id, storage_path, position), pitches(id, venue_id, name, sport_type, size, price_per_hour, surface_type, status, opens_at, closes_at, pitch_images(id, pitch_id, storage_path, position)), venue_amenities(amenity_id, amenities(id, name))",
+      "id, name, address_text, latitude, longitude, description, rules, venue_images(id, venue_id, storage_path, position), seating_capacity, spectator_fee, pitches(id, venue_id, name, sport_type, size, price_per_hour, pricing_model, min_players, max_players, surface_type, status, opens_at, closes_at, pitch_images(id, pitch_id, storage_path, position)), venue_amenities(amenity_id, amenities(id, name))",
     )
     .eq("id", venueId)
     .maybeSingle();

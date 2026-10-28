@@ -18,8 +18,14 @@ import type { Pitch } from "./types";
 import styles from "./ManagerDashboard.module.css";
 
 const SIZE_OPTIONS = ["5-a-side", "7-a-side", "11-a-side"] as const;
-const OPEN_HOURS = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, "0")}:00`);
-const CLOSE_HOURS = Array.from({ length: 24 }, (_, h) => `${String(h + 1).padStart(2, "0")}:00`);
+const OPEN_HOURS = Array.from(
+  { length: 24 },
+  (_, h) => `${String(h).padStart(2, "0")}:00`,
+);
+const CLOSE_HOURS = Array.from(
+  { length: 24 },
+  (_, h) => `${String(h + 1).padStart(2, "0")}:00`,
+);
 
 type PitchFormProps = {
   venueId: string;
@@ -28,22 +34,44 @@ type PitchFormProps = {
   onSaved: () => void;
 };
 
-export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFormProps) {
+export default function PitchForm({
+  venueId,
+  pitch,
+  onClose,
+  onSaved,
+}: PitchFormProps) {
   const editing = Boolean(pitch);
   const router = useRouter();
+
+  // Pricing model: "per_pitch" or "per_person"
+  const [pricingModel, setPricingModel] = useState<"per_pitch" | "per_person">(
+    pitch?.pricing_model ?? "per_pitch",
+  );
 
   const [name, setName] = useState(pitch?.name ?? "");
   const [sportType, setSportType] = useState(pitch?.sport_type ?? "Football");
   const [size, setSize] = useState(pitch?.size ?? "7-a-side");
-  const [pricePerHour, setPricePerHour] = useState(
-    pitch?.price_per_hour != null ? String(pitch.price_per_hour) : "",
+  const [pricePerHour, setPricePerHour] = useState<string | null>(
+    pitch?.price_per_hour != null ? String(pitch.price_per_hour) : null,
   );
   const [surfaceType, setSurfaceType] = useState(pitch?.surface_type ?? "");
   const [status, setStatus] = useState<"active" | "inactive">(
     pitch?.status === "inactive" ? "inactive" : "active",
   );
-  const [opensAt, setOpensAt] = useState<string>(pitch?.opens_at?.slice(0, 5) ?? "06:00");
-  const [closesAt, setClosesAt] = useState<string>(pitch?.closes_at?.slice(0, 5) ?? "22:00");
+  const [opensAt, setOpensAt] = useState<string>(
+    pitch?.opens_at?.slice(0, 5) ?? "06:00",
+  );
+  const [closesAt, setClosesAt] = useState<string>(
+    pitch?.closes_at?.slice(0, 5) ?? "22:00",
+  );
+
+  // New: min/max players for per-person pricing
+  const [minPlayers, setMinPlayers] = useState<number | null>(
+    pitch?.min_players ?? null,
+  );
+  const [maxPlayers, setMaxPlayers] = useState<number | null>(
+    pitch?.max_players ?? null,
+  );
 
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<ExistingImageItem[]>(
@@ -54,7 +82,10 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
       : [],
   );
 
-  const [message, setMessage] = useState<{ type: "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "error";
+    text: string;
+  } | null>(null);
   const [pitchSaved, setPitchSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -76,7 +107,9 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
     if (!pitch) return;
     setExistingImages((prev) => {
       const byId = new Map(prev.map((item) => [item.id, item]));
-      return orderedIds.map((id) => byId.get(id)).filter((item): item is ExistingImageItem => Boolean(item));
+      return orderedIds
+        .map((id) => byId.get(id))
+        .filter((item): item is ExistingImageItem => Boolean(item));
     });
     const result = await reorderPitchImagesAction(pitch.id, orderedIds);
     if (result.success === false) {
@@ -90,15 +123,53 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
     setMessage(null);
 
     if (closesAt <= opensAt) {
-      setMessage({ type: "error", text: "Closing time must be after opening time." });
+      setMessage({
+        type: "error",
+        text: "Closing time must be after opening time.",
+      });
       return;
+    }
+
+    // Client-side validation for player range
+    if (pricingModel === "per_person") {
+      if (minPlayers == null || maxPlayers == null) {
+        setMessage({
+          type: "error",
+          text: "Minimum and maximum players are required for per-person pricing.",
+        });
+        return;
+      }
+      if (minPlayers < 1 || minPlayers > 200) {
+        setMessage({
+          type: "error",
+          text: "Minimum players must be between 1 and 200.",
+        });
+        return;
+      }
+      if (maxPlayers < 1 || maxPlayers > 200) {
+        setMessage({
+          type: "error",
+          text: "Maximum players must be between 1 and 200.",
+        });
+        return;
+      }
+      if (minPlayers > maxPlayers) {
+        setMessage({
+          type: "error",
+          text: "Minimum players must be less than or equal to maximum players.",
+        });
+        return;
+      }
     }
 
     const input = {
       name,
       sportType,
       size,
-      pricePerHour,
+      pricePerHour: pricePerHour ?? "",
+      pricingModel,
+      minPlayers,
+      maxPlayers,
       surfaceType,
       status,
       opens_at: opensAt,
@@ -138,7 +209,10 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
         const storagePath = pitchImagePath(venueId, createdPitchId, file.name);
         const resultUpload = await uploadToBucket(supabase, storagePath, file);
         if (resultUpload.ok) {
-          uploaded.push({ storagePath: resultUpload.storagePath, position: existingImages.length + uploaded.length });
+          uploaded.push({
+            storagePath: resultUpload.storagePath,
+            position: existingImages.length + uploaded.length,
+          });
         } else {
           failedCount += 1;
         }
@@ -218,15 +292,19 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="pitch-price">Price per hour (KES)</label>
+          <label htmlFor="pitch-price">
+            {pricingModel === "per_person"
+              ? "Price per person per hour (KES)"
+              : "Price per hour (KES)"}
+          </label>{" "}
           <input
             id="pitch-price"
             name="price_per_hour"
             type="number"
             min="0"
             inputMode="numeric"
-            value={pricePerHour}
-            onChange={(event) => setPricePerHour(event.target.value)}
+            value={pricePerHour ?? ""}
+            onChange={(event) => setPricePerHour(event.target.value || null)}
             placeholder="e.g. 1500"
             required
           />
@@ -243,6 +321,95 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
             placeholder="e.g. Artificial turf"
           />
         </div>
+
+        <div className={styles.field}>
+          <span>How do you charge?</span>
+          <div
+            className={styles.toggle_group}
+            role="group"
+            aria-label="Pricing model"
+          >
+            <button
+              type="button"
+              className={`${styles.toggle_btn} ${pricingModel === "per_pitch" ? styles.toggle_btn_active : ""}`}
+              onClick={() => setPricingModel("per_pitch")}
+            >
+              Per pitch
+            </button>
+            <button
+              type="button"
+              className={`${styles.toggle_btn} ${pricingModel === "per_person" ? styles.toggle_btn_active : ""}`}
+              onClick={() => setPricingModel("per_person")}
+            >
+              Per person
+            </button>
+          </div>
+          <p className={styles.field_hint}>
+            Per person: the player pays the rate times the number of people they
+            bring.
+          </p>
+        </div>
+
+        {pricingModel === "per_person" ? (
+          <div className={styles.row_2col}>
+            <div className={styles.field}>
+              <label htmlFor="pitch-min-players">Minimum players</label>
+              <input
+                id="pitch-min-players"
+                name="min_players"
+                type="number"
+                min="1"
+                max="200"
+                value={minPlayers ?? ""}
+                onChange={(event) =>
+                  setMinPlayers(
+                    event.target.value ? Number(event.target.value) : null,
+                  )
+                }
+                placeholder="e.g. 5"
+                required
+              />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="pitch-max-players">Maximum players</label>
+              <input
+                id="pitch-max-players"
+                name="max_players"
+                type="number"
+                min="1"
+                max="200"
+                value={maxPlayers ?? ""}
+                onChange={(event) =>
+                  setMaxPlayers(
+                    event.target.value ? Number(event.target.value) : null,
+                  )
+                }
+                placeholder="e.g. 10"
+                required
+              />
+            </div>
+          </div>
+        ) : (
+          <div className={styles.field}>
+            <label htmlFor="pitch-max-players">
+              Maximum players (optional)
+            </label>
+            <input
+              id="pitch-max-players"
+              name="max_players"
+              type="number"
+              min="1"
+              max="200"
+              value={maxPlayers ?? ""}
+              onChange={(event) =>
+                setMaxPlayers(
+                  event.target.value ? Number(event.target.value) : null,
+                )
+              }
+              placeholder="e.g. 10"
+            />
+          </div>
+        )}
 
         <div className={styles.field}>
           <label htmlFor="pitch-opens">Opens</label>
@@ -278,7 +445,11 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
 
         <div className={styles.field}>
           <span>Availability</span>
-          <div className={styles.toggle_group} role="group" aria-label="Pitch availability">
+          <div
+            className={styles.toggle_group}
+            role="group"
+            aria-label="Pitch availability"
+          >
             <button
               type="button"
               className={`${styles.toggle_btn} ${status === "active" ? styles.toggle_btn_active : ""}`}
@@ -310,16 +481,30 @@ export default function PitchForm({ venueId, pitch, onClose, onSaved }: PitchFor
         />
 
         {message && (
-          <p className={`${styles.form_message} ${styles.form_message_error}`} role="alert">
+          <p
+            className={`${styles.form_message} ${styles.form_message_error}`}
+            role="alert"
+          >
             {message.text}
           </p>
         )}
 
         <div className={styles.form_actions}>
-          <Button type="button" variant="outline" arrow={false} onClick={onClose} disabled={isPending}>
+          <Button
+            type="button"
+            variant="outline"
+            arrow={false}
+            onClick={onClose}
+            disabled={isPending}
+          >
             {pitchSaved ? "Close" : "Cancel"}
           </Button>
-          <Button type="submit" variant="black" arrow={false} disabled={isPending || pitchSaved}>
+          <Button
+            type="submit"
+            variant="black"
+            arrow={false}
+            disabled={isPending || pitchSaved}
+          >
             {isPending
               ? "Saving..."
               : pitchSaved

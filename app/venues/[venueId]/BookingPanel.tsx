@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import Button from "@/components/ui/buttons/Button";
 import { createClient } from "@/utils/supabase/client";
+import { computeTotals } from "@/utils/pricing";
+import { startPaymentAction } from "./payment-actions";
 import type { Pitch } from "@/app/dashboard/types";
 import styles from "./BookingPanel.module.css";
 
@@ -12,9 +14,16 @@ const HOUR_MS = 3_600_000;
 
 type BookedRange = { start: number; end: number };
 type FetchResult = { key: string; booked: BookedRange[]; error: string | null };
-type Held = { expiresAt: number; label: string; expired: boolean };
+type Held = {
+  expiresAt: number;
+  label: string;
+  expired: boolean;
+  bookingId: string;
+  totalAmount: number | null;
+};
 
 const pad = (n: number) => String(n).padStart(2, "0");
+const kes = (n: number) => `KES ${n.toLocaleString()}`;
 
 // "2026-10-13" in Nairobi, regardless of the browser's timezone.
 function nairobiToday(): string {
@@ -63,6 +72,10 @@ const ERRORS: [string, string][] = [
   ["pitch_has_no_price", "This pitch has no price set yet."],
   ["only_players_can_book", "Only player accounts can book."],
   ["not_authenticated", "Please log in to book."],
+  ["manager_not_payable", "This venue can't take bookings yet."],
+  ["players_required", "Choose how many players."],
+  ["invalid_players", "That number of players isn't allowed for this pitch."],
+  ["invalid_spectators", "That number of spectators isn't allowed."],
 ];
 
 function friendlyError(message: string): string {
@@ -72,12 +85,62 @@ function friendlyError(message: string): string {
   return "Something went wrong. Try again.";
 }
 
+function Stepper({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (next: number) => void;
+}) {
+  return (
+    <div className={styles.stepper_row}>
+      <span className={styles.stepper_label}>{label}</span>
+      <div className={styles.stepper}>
+        <button
+          type="button"
+          className={styles.stepper_btn}
+          onClick={() => onChange(Math.max(min, value - 1))}
+          disabled={value <= min}
+          aria-label={`Fewer ${label.toLowerCase()}`}
+        >
+          <Minus size={14} aria-hidden="true" />
+        </button>
+        <span className={styles.stepper_value} aria-live="polite">
+          {value}
+        </span>
+        <button
+          type="button"
+          className={styles.stepper_btn}
+          onClick={() => onChange(Math.min(max, value + 1))}
+          disabled={value >= max}
+          aria-label={`More ${label.toLowerCase()}`}
+        >
+          <Plus size={14} aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 type BookingPanelProps = {
   pitch: Pitch;
   onClose: () => void;
+  seatingCapacity?: number | null;
+  spectatorFee?: number | null;
 };
 
-export default function BookingPanel({ pitch, onClose }: BookingPanelProps) {
+export default function BookingPanel({
+  pitch,
+  onClose,
+  seatingCapacity = null,
+  spectatorFee = null,
+}: BookingPanelProps) {
   const supabase = useMemo(() => createClient(), []);
   const [today] = useState(nairobiToday);
   const [date, setDate] = useState(today);
@@ -88,12 +151,32 @@ export default function BookingPanel({ pitch, onClose }: BookingPanelProps) {
   const [holdError, setHoldError] = useState<string | null>(null);
   const [held, setHeld] = useState<Held | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [paying, setPaying] = useState(false);
+
+  const perPerson = pitch.pricing_model === "per_person";
+  const minPlayers = pitch.min_players ?? 1;
+  const maxPlayers = pitch.max_players ?? minPlayers;
+  const askSpectators =
+    seatingCapacity != null &&
+    seatingCapacity > 0 &&
+    spectatorFee != null &&
+    spectatorFee > 0;
+
+  const [players, setPlayers] = useState(minPlayers);
+  const [spectators, setSpectators] = useState(0);
 
   const dates = useMemo(
     () => Array.from({ length: 14 }, (_, i) => addDays(today, i)),
     [today],
   );
   const hours = useMemo(() => openHours(pitch), [pitch]);
+
+  const totals = computeTotals(
+    pitch,
+    perPerson ? players : 1,
+    askSpectators ? spectators : 0,
+    spectatorFee,
+  );
 
   // Load taken slots for this pitch and day.
   const requestKey = `${pitch.id}|${date}|${reloadKey}`;
@@ -119,21 +202,24 @@ export default function BookingPanel({ pitch, onClose }: BookingPanelProps) {
   }, [supabase, pitch.id, date, requestKey]);
 
   const loading = result?.key !== requestKey;
-  const loadError = !loading ? result?.error ?? null : null;
+  const loadError = !loading ? (result?.error ?? null) : null;
   const booked = !loading && result ? result.booked : [];
 
   // Clock: ticks every second while a hold is live, otherwise every 30s
   // so slots that pass during the session grey out.
   useEffect(() => {
     const live = held !== null && !held.expired;
-    const id = setInterval(() => {
-      const t = Date.now();
-      setNow(t);
-      if (held && !held.expired && t >= held.expiresAt) {
-        setHeld({ ...held, expired: true });
-        setReloadKey((k) => k + 1);
-      }
-    }, live ? 1000 : 30000);
+    const id = setInterval(
+      () => {
+        const t = Date.now();
+        setNow(t);
+        if (held && !held.expired && t >= held.expiresAt) {
+          setHeld({ ...held, expired: true });
+          setReloadKey((k) => k + 1);
+        }
+      },
+      live ? 1000 : 30000,
+    );
     return () => clearInterval(id);
   }, [held]);
 
@@ -147,6 +233,8 @@ export default function BookingPanel({ pitch, onClose }: BookingPanelProps) {
       p_pitch_id: pitch.id,
       p_start: new Date(start).toISOString(),
       p_end: new Date(start + HOUR_MS).toISOString(),
+      p_players: perPerson ? players : null,
+      p_spectators: askSpectators ? spectators : 0,
     });
     setHolding(false);
 
@@ -159,10 +247,18 @@ export default function BookingPanel({ pitch, onClose }: BookingPanelProps) {
       return;
     }
 
-    const row = (Array.isArray(data) ? data[0] : data) as
-      | { hold_expires_at?: string }
-      | null;
-    const expiresAt = row?.hold_expires_at
+    const row = (Array.isArray(data) ? data[0] : data) as {
+      hold_expires_at?: string;
+      id: string;
+      total_amount?: number | string;
+    } | null;
+
+    if (!row) {
+      setHoldError("Couldn't create booking. Try again.");
+      return;
+    }
+
+    const expiresAt = row.hold_expires_at
       ? new Date(row.hold_expires_at).getTime()
       : Date.now() + 10 * 60 * 1000;
 
@@ -170,10 +266,30 @@ export default function BookingPanel({ pitch, onClose }: BookingPanelProps) {
       expiresAt,
       label: `${dayLabel(date)}, ${slotLabel(selectedHour)}`,
       expired: false,
+      bookingId: row.id,
+      totalAmount: row.total_amount != null ? Number(row.total_amount) : null,
     });
     setNow(Date.now());
     setSelectedHour(null);
     setReloadKey((k) => k + 1);
+  }
+
+  async function payNow() {
+    if (!held || held.expired || paying) return;
+    setPaying(true);
+    setHoldError(null);
+    try {
+      const result = await startPaymentAction(held.bookingId);
+      if (result.success) {
+        window.location.assign(result.url);
+        return;
+      }
+      setHoldError(result.error);
+    } catch (err) {
+      console.error("startPaymentAction failed:", err);
+      setHoldError("Couldn't start payment. Try again.");
+    }
+    setPaying(false);
   }
 
   const remaining =
@@ -195,6 +311,29 @@ export default function BookingPanel({ pitch, onClose }: BookingPanelProps) {
           <X size={16} aria-hidden="true" />
         </button>
       </div>
+
+      {(perPerson || askSpectators) && (
+        <div className={styles.options}>
+          {perPerson && (
+            <Stepper
+              label="Players"
+              value={players}
+              min={minPlayers}
+              max={maxPlayers}
+              onChange={setPlayers}
+            />
+          )}
+          {askSpectators && (
+            <Stepper
+              label="Spectators"
+              value={spectators}
+              min={0}
+              max={seatingCapacity ?? 0}
+              onChange={setSpectators}
+            />
+          )}
+        </div>
+      )}
 
       <div className={styles.dates} role="group" aria-label="Choose a date">
         {dates.map((d) => (
@@ -256,7 +395,11 @@ export default function BookingPanel({ pitch, onClose }: BookingPanelProps) {
                   disabled={unavailable || taken || past}
                   aria-pressed={selected}
                   title={
-                    taken ? "Already taken" : past ? "This time has passed" : undefined
+                    taken
+                      ? "Already taken"
+                      : past
+                        ? "This time has passed"
+                        : undefined
                   }
                   onClick={() => {
                     setSelectedHour(h);
@@ -276,11 +419,19 @@ export default function BookingPanel({ pitch, onClose }: BookingPanelProps) {
           <p className={styles.summary_line}>
             {pitch.name}, {dayLabel(date)}, {slotLabel(selectedHour)}
           </p>
-          <p className={styles.summary_meta}>
-            {pitch.price_per_hour != null
-              ? `KES ${pitch.price_per_hour.toLocaleString()} for 1 hour`
-              : "1 hour"}
-          </p>
+          <div className={styles.breakdown}>
+            <p className={styles.summary_meta}>
+              {perPerson
+                ? `${kes(pitch.price_per_hour ?? 0)} x ${players} players = ${kes(totals.pitchAmount)}`
+                : `${kes(totals.pitchAmount)} for 1 hour`}
+            </p>
+            {askSpectators && spectators > 0 && (
+              <p className={styles.summary_meta}>
+                {`${spectators} spectators x ${kes(spectatorFee ?? 0)} = ${kes(totals.spectatorAmount)}`}
+              </p>
+            )}
+            <p className={styles.summary_total}>Total {kes(totals.total)}</p>
+          </div>
           <Button
             type="button"
             variant="primary"
@@ -302,15 +453,30 @@ export default function BookingPanel({ pitch, onClose }: BookingPanelProps) {
       {held && (
         <div className={styles.held}>
           {held.expired ? (
-            <p className={styles.held_title}>Hold expired. Pick a slot to try again.</p>
+            <p className={styles.held_title}>
+              Hold expired. Pick a slot to try again.
+            </p>
           ) : (
             <>
               <p className={styles.held_title}>
-                Slot held, expires in {Math.floor(remaining / 60)}:{pad(remaining % 60)}
+                Slot held, expires in {Math.floor(remaining / 60)}:
+                {pad(remaining % 60)}
               </p>
-              <p className={styles.summary_meta}>
-                {held.label}. Online payment is coming soon, so this hold will expire.
-              </p>
+              <p className={styles.summary_meta}>{held.label}.</p>
+              {held.totalAmount != null && (
+                <p className={styles.summary_total}>
+                  Total {kes(held.totalAmount)}
+                </p>
+              )}
+              <Button
+                type="button"
+                variant="primary"
+                arrow={false}
+                onClick={payNow}
+                disabled={paying}
+              >
+                {paying ? "Opening checkout..." : "Pay with M-Pesa"}
+              </Button>
             </>
           )}
         </div>

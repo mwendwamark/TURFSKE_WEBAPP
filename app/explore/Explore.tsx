@@ -14,7 +14,7 @@ import {
   TbNavigation,
 } from "react-icons/tb";
 import type { Amenity, VenueWithRelations } from "../dashboard/types";
-
+import { pitchStartingPrice } from "@/utils/pricing";
 // ── Types ──────────────────────────────────────────────────
 
 type VenueCard = {
@@ -37,8 +37,9 @@ type VenueCard = {
 function venueToCard(venue: VenueWithRelations): VenueCard {
   const activePitches = venue.pitches.filter((p) => p.status === "active");
   const lowestPrice = activePitches.reduce<number | null>((min, p) => {
-    if (p.price_per_hour == null) return min;
-    return min === null || p.price_per_hour < min ? p.price_per_hour : min;
+    const price = pitchStartingPrice(p);
+    if (price == null) return min;
+    return min === null || price < min ? price : min;
   }, null);
   const coverImage =
     [...venue.venue_images].sort((a, b) => a.position - b.position)[0] ?? null;
@@ -146,7 +147,8 @@ export default function Explore({
     const prices = cards
       .map((c) => c.lowestPrice)
       .filter((p): p is number => p != null);
-    if (prices.length === 0) return { minPrice: PRICE_MIN, maxPrice: PRICE_MAX };
+    if (prices.length === 0)
+      return { minPrice: PRICE_MIN, maxPrice: PRICE_MAX };
     return {
       minPrice: Math.floor(Math.min(...prices) / 100) * 100,
       maxPrice: Math.ceil(Math.max(...prices) / 100) * 100,
@@ -154,10 +156,13 @@ export default function Explore({
   }, [cards]);
 
   // Clamp price range to valid bounds
-  const clampedPriceRange = useMemo((): [number, number] => [
-    Math.max(minPrice, Math.min(priceRange[0], maxPrice)),
-    Math.max(minPrice, Math.min(priceRange[1], maxPrice)),
-  ], [priceRange, minPrice, maxPrice]);
+  const clampedPriceRange = useMemo(
+    (): [number, number] => [
+      Math.max(minPrice, Math.min(priceRange[0], maxPrice)),
+      Math.max(minPrice, Math.min(priceRange[1], maxPrice)),
+    ],
+    [priceRange, minPrice, maxPrice],
+  );
 
   // Map venue ID → distance from PostGIS RPC
   const distanceMap = useMemo(() => {
@@ -243,15 +248,14 @@ export default function Explore({
     selectedCategories.length +
     selectedSurfaces.length +
     selectedAmenities.length +
-    (clampedPriceRange[0] > minPrice || clampedPriceRange[1] < maxPrice ? 1 : 0);
+    (clampedPriceRange[0] > minPrice || clampedPriceRange[1] < maxPrice
+      ? 1
+      : 0);
 
   const filteredTurfs = useMemo(() => {
     const q = query.trim().toLowerCase();
     let result = cards.filter((card) => {
-      if (
-        q &&
-        !`${card.name} ${card.address ?? ""}`.toLowerCase().includes(q)
-      )
+      if (q && !`${card.name} ${card.address ?? ""}`.toLowerCase().includes(q))
         return false;
       if (
         selectedCategories.length &&
@@ -270,11 +274,13 @@ export default function Explore({
         return false;
       if (
         card.lowestPrice != null &&
-        (card.lowestPrice < clampedPriceRange[0] || card.lowestPrice > clampedPriceRange[1])
+        (card.lowestPrice < clampedPriceRange[0] ||
+          card.lowestPrice > clampedPriceRange[1])
       )
         return false;
       // Hide venues with no price when price filter is active
-      if (card.lowestPrice == null && clampedPriceRange[0] > minPrice) return false;
+      if (card.lowestPrice == null && clampedPriceRange[0] > minPrice)
+        return false;
       return true;
     });
 
@@ -363,7 +369,11 @@ export default function Explore({
         {filteredTurfs.length > 0 ? (
           <div className={styles.grid}>
             {filteredTurfs.map((turf) => (
-              <Link key={turf.id} href={`/venues/${turf.id}`} className={styles.card}>
+              <Link
+                key={turf.id}
+                href={`/venues/${turf.id}`}
+                className={styles.card}
+              >
                 <div className={styles.thumb}>
                   {turf.coverImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -378,12 +388,13 @@ export default function Explore({
                     </div>
                   )}
                   {turf.sizes.length > 0 && (
-                    <span className={styles.sizeBadge}>
-                      {turf.sizes[0]}
-                    </span>
+                    <span className={styles.sizeBadge}>{turf.sizes[0]}</span>
                   )}
                   {turf.floodlit && (
-                    <span className={styles.floodlitBadge} aria-label="Floodlit">
+                    <span
+                      className={styles.floodlitBadge}
+                      aria-label="Floodlit"
+                    >
                       <TbBolt aria-hidden="true" />
                     </span>
                   )}
@@ -400,6 +411,7 @@ export default function Explore({
 
                   {turf.lowestPrice != null && (
                     <div className={styles.priceRow}>
+                      <span className={styles.pricePeriod}>From</span>
                       <span className={styles.price}>
                         KSh {turf.lowestPrice.toLocaleString()}
                       </span>
@@ -412,15 +424,16 @@ export default function Explore({
                       {turf.activePitchCount} pitch
                       {turf.activePitchCount !== 1 ? "es" : ""}
                     </span>
-                    {sortBy === "nearest" && distanceMap?.get(turf.id) != null && (
-                      <span className={styles.distance}>
-                        <TbNavigation
-                          className={styles.distanceIcon}
-                          aria-hidden="true"
-                        />
-                        {distanceMap!.get(turf.id)!.toFixed(1)} km away
-                      </span>
-                    )}
+                    {sortBy === "nearest" &&
+                      distanceMap?.get(turf.id) != null && (
+                        <span className={styles.distance}>
+                          <TbNavigation
+                            className={styles.distanceIcon}
+                            aria-hidden="true"
+                          />
+                          {distanceMap!.get(turf.id)!.toFixed(1)} km away
+                        </span>
+                      )}
                   </div>
                 </div>
               </Link>
@@ -501,16 +514,18 @@ export default function Explore({
             </div>
             {sortBy === "nearest" && geoStatus === "denied" && (
               <p className={styles.geoHint}>
-                Location unavailable — showing alphabetical order. Enable location
-                access for distance sorting.
+                Location unavailable — showing alphabetical order. Enable
+                location access for distance sorting.
               </p>
             )}
             {sortBy === "nearest" && geoStatus === "locating" && (
               <p className={styles.geoHint}>Getting your location…</p>
             )}
-            {sortBy === "nearest" && geoStatus === "granted" && nearbyLoading && (
-              <p className={styles.geoHint}>Finding nearby turfs…</p>
-            )}
+            {sortBy === "nearest" &&
+              geoStatus === "granted" &&
+              nearbyLoading && (
+                <p className={styles.geoHint}>Finding nearby turfs…</p>
+              )}
           </div>
 
           {/* Pitch size */}
@@ -524,7 +539,11 @@ export default function Explore({
                     type="button"
                     className={`${styles.chip} ${selectedCategories.includes(cat) ? styles.chipActive : ""}`}
                     onClick={() =>
-                      toggleFromList(selectedCategories, setSelectedCategories, cat)
+                      toggleFromList(
+                        selectedCategories,
+                        setSelectedCategories,
+                        cat,
+                      )
                     }
                   >
                     {cat}
@@ -545,7 +564,11 @@ export default function Explore({
                     type="button"
                     className={`${styles.chip} ${selectedSurfaces.includes(surface) ? styles.chipActive : ""}`}
                     onClick={() =>
-                      toggleFromList(selectedSurfaces, setSelectedSurfaces, surface)
+                      toggleFromList(
+                        selectedSurfaces,
+                        setSelectedSurfaces,
+                        surface,
+                      )
                     }
                   >
                     {surface}
@@ -581,7 +604,10 @@ export default function Explore({
                 step={100}
                 value={priceRange[0]}
                 onChange={(e) => {
-                  const val = Math.min(Number(e.target.value), priceRange[1] - 100);
+                  const val = Math.min(
+                    Number(e.target.value),
+                    priceRange[1] - 100,
+                  );
                   setPriceRange([val, priceRange[1]]);
                 }}
                 className={styles.rangeInput}
@@ -593,7 +619,10 @@ export default function Explore({
                 step={100}
                 value={priceRange[1]}
                 onChange={(e) => {
-                  const val = Math.max(Number(e.target.value), priceRange[0] + 100);
+                  const val = Math.max(
+                    Number(e.target.value),
+                    priceRange[0] + 100,
+                  );
                   setPriceRange([priceRange[0], val]);
                 }}
                 className={styles.rangeInput}
@@ -612,7 +641,11 @@ export default function Explore({
                     type="button"
                     className={`${styles.chip} ${selectedAmenities.includes(amenity) ? styles.chipActive : ""}`}
                     onClick={() =>
-                      toggleFromList(selectedAmenities, setSelectedAmenities, amenity)
+                      toggleFromList(
+                        selectedAmenities,
+                        setSelectedAmenities,
+                        amenity,
+                      )
                     }
                   >
                     {amenity}
@@ -636,7 +669,8 @@ export default function Explore({
             className={styles.applyBtn}
             onClick={() => setFiltersOpen(false)}
           >
-            Show {filteredTurfs.length} turf{filteredTurfs.length === 1 ? "" : "s"}
+            Show {filteredTurfs.length} turf
+            {filteredTurfs.length === 1 ? "" : "s"}
           </button>
         </div>
       </div>

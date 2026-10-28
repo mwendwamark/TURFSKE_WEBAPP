@@ -27,20 +27,23 @@ import StorageImage from "../../dashboard/StorageImage";
 import Button from "../../../components/ui/buttons/Button";
 import RoleNoticeBanner from "../../../components/auth/RoleNoticeBanner";
 import type { VenueWithRelations } from "../../dashboard/types";
+import {
+  pitchPlayersLabel,
+  pitchPriceLabel,
+  pitchStartingPrice,
+} from "@/utils/pricing";
 import styles from "./VenueDetail.module.css";
 
 /**
- * What the Book now / Select buttons should do, decided
- * server-side on the venue page:
+ * What the Book now / Select buttons do, decided server side on the
+ * venue page:
  *
- * - guest   → link to /auth/signup carrying ?next=<venue path>
- * - player  → booking isn't built yet (Phase 4), so show an
- *             inline "coming soon" disabled state. Never a link —
- *             the proxy silently bounces signed-in users away from
- *             /auth/signup to /dashboard.
- * - notice  → the account's role means it can't book (manager,
- *             admin, …). Show the RoleNoticeBanner pattern with an
- *             inline message; no redirect.
+ * guest:  link to /auth/signup carrying ?next=<venue path>
+ * player: opens the booking panel (hold a slot, then pay with M-Pesa).
+ *         Never a link, because the proxy silently bounces signed in
+ *         users away from /auth/signup to /dashboard.
+ * notice: the account's role means it can't book (manager, admin, ...).
+ *         Shows the RoleNoticeBanner with an inline message, no redirect.
  */
 export type BookingAuthState =
   | { kind: "guest" }
@@ -48,7 +51,7 @@ export type BookingAuthState =
   | { kind: "notice"; message: ReactNode };
 
 /**
- * Amenity name → icon. Keys are lowercase; matching is normalized, so
+ * Amenity name to icon. Keys are lowercase; matching is normalized, so
  * "Parking", "parking" and " Parking " all hit the same entry.
  */
 const AMENITY_ICONS: Record<string, LucideIcon> = {
@@ -106,15 +109,26 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
   const amenityNames = venue.venue_amenities
     .map((link) => link.amenities?.name)
     .filter((name): name is string => Boolean(name));
-  const prices = activePitches
-    .map((p) => p.price_per_hour)
-    .filter((price): price is number => price != null);
-  const fromPrice = prices.length > 0 ? Math.min(...prices) : null;
 
-  // Signed-in users are never sent to /auth/signup — the proxy
-  // bounces them to /dashboard, which would silently swallow the
-  // booking action. Guests get the signup link with a ?next
-  // return path instead.
+  // What the cheapest booking costs: group minimum for per person pitches.
+  const startingPrices = activePitches
+    .map((p) => pitchStartingPrice(p))
+    .filter((price): price is number => price != null);
+  const fromPrice =
+    startingPrices.length > 0 ? Math.min(...startingPrices) : null;
+
+  const seatingLine =
+    venue.seating_capacity != null
+      ? `Spectator seating: up to ${venue.seating_capacity} seats${
+          venue.spectator_fee != null && venue.spectator_fee > 0
+            ? `, ${formatPrice(venue.spectator_fee)} per spectator`
+            : ", free"
+        }`
+      : null;
+
+  // Signed in users are never sent to /auth/signup, the proxy bounces
+  // them to /dashboard, which would silently swallow the booking action.
+  // Guests get the signup link with a ?next return path instead.
   const bookingHref = `/auth/signup?next=${encodeURIComponent(
     `/venues/${venue.id}`,
   )}`;
@@ -241,6 +255,9 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
                   );
                 })}
               </div>
+              {seatingLine && (
+                <p className={styles.description_text}>{seatingLine}</p>
+              )}
             </section>
           )}
 
@@ -278,6 +295,7 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
               <ul className={styles.pitch_list}>
                 {activePitches.map((pitch) => {
                   const cover = pitchCover(pitch);
+                  const playersLabel = pitchPlayersLabel(pitch);
                   return (
                     <li key={pitch.id} className={styles.pitch_card}>
                       <div className={styles.pitch_thumb}>
@@ -300,10 +318,7 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
                           <p className={styles.pitch_name}>{pitch.name}</p>
                           {pitch.price_per_hour != null && (
                             <p className={styles.pitch_price}>
-                              {formatPrice(pitch.price_per_hour)}
-                              <span className={styles.pitch_price_period}>
-                                /hr
-                              </span>
+                              {pitchPriceLabel(pitch)}
                             </p>
                           )}
                         </div>
@@ -316,11 +331,14 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
                               {pitch.surface_type}
                             </span>
                           )}
+                          {playersLabel && (
+                            <span className={styles.badge}>{playersLabel}</span>
+                          )}
                         </div>
                       </div>
 
                       <div className={styles.pitch_actions}>
-                        {selectButton(pitch.id)}{" "}
+                        {selectButton(pitch.id)}
                       </div>
                     </li>
                   );
@@ -332,6 +350,8 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
                 key={openPitch.id}
                 pitch={openPitch}
                 onClose={() => setOpenPitchId(null)}
+                seatingCapacity={venue.seating_capacity ?? null}
+                spectatorFee={venue.spectator_fee ?? null}
               />
             )}
           </section>

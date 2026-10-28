@@ -4,7 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import { ArrowLeft, ImageOff, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ImageOff,
+  MapPin,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import Button from "@/components/ui/buttons/Button";
 import DashboardModal from "../../DashboardModal";
 import ImageGallery from "../../ImageGallery";
@@ -13,6 +20,7 @@ import StorageImage from "../../StorageImage";
 import VenueForm from "../../VenueForm";
 import { deletePitchAction, deleteVenueAction } from "../../actions";
 import type { Amenity, Pitch, VenueWithRelations } from "../../types";
+import { pitchPriceLabel, pitchPlayersLabel } from "@/utils/pricing";
 import styles from "./VenueDetail.module.css";
 type ModalState =
   | { type: "edit-venue" }
@@ -27,7 +35,11 @@ type VenueDetailProps = {
 };
 
 function pitchCover(pitch: Pitch) {
-  return [...(pitch.pitch_images ?? [])].sort((a, b) => a.position - b.position)[0] ?? null;
+  return (
+    [...(pitch.pitch_images ?? [])].sort(
+      (a, b) => a.position - b.position,
+    )[0] ?? null
+  );
 }
 
 export default function VenueDetail({ venue, amenities }: VenueDetailProps) {
@@ -99,7 +111,9 @@ export default function VenueDetail({ venue, amenities }: VenueDetailProps) {
       <div className={styles.head}>
         <div className={styles.head_text}>
           <h2 className={styles.title}>{venue.name}</h2>
-          {venue.address_text && <p className={styles.address}>{venue.address_text}</p>}
+          {venue.address_text && (
+            <p className={styles.address}>{venue.address_text}</p>
+          )}
           {venue.latitude != null && venue.longitude != null && (
             <p className={styles.coords}>
               <MapPin size={14} aria-hidden="true" />
@@ -145,7 +159,8 @@ export default function VenueDetail({ venue, amenities }: VenueDetailProps) {
             {venue.venue_amenities.map((link) => {
               const name =
                 link.amenities?.name ??
-                amenities.find((amenity) => amenity.id === link.amenity_id)?.name;
+                amenities.find((amenity) => amenity.id === link.amenity_id)
+                  ?.name;
               return name ? (
                 <span key={link.amenity_id} className={styles.chip}>
                   {name}
@@ -155,6 +170,15 @@ export default function VenueDetail({ venue, amenities }: VenueDetailProps) {
           </div>
         ) : (
           <p className={styles.section_empty}>No amenities added yet.</p>
+        )}
+        {venue.seating_capacity != null && (
+          <p className={styles.section_text}>
+            {`Spectator seating: up to ${venue.seating_capacity} seats, ${
+              venue.spectator_fee != null && venue.spectator_fee > 0
+                ? `KES ${venue.spectator_fee.toLocaleString()} per spectator`
+                : "free"
+            }`}
+          </p>
         )}
       </section>
 
@@ -203,7 +227,8 @@ export default function VenueDetail({ venue, amenities }: VenueDetailProps) {
 
         {pitches.length === 0 ? (
           <p className={styles.section_empty}>
-            No pitches yet. Add one so players can see what you offer and book it.
+            No pitches yet. Add one so players can see what you offer and book
+            it.
           </p>
         ) : (
           <ul className={styles.pitch_list}>
@@ -238,14 +263,18 @@ export default function VenueDetail({ venue, amenities }: VenueDetailProps) {
                       </span>
                     </p>
                     <p className={styles.pitch_meta}>
-                      {pitch.size}
-                      {pitch.surface_type ? ` · ${pitch.surface_type}` : ""}
-                      {pitch.price_per_hour != null
-                        ? ` · KES ${pitch.price_per_hour.toLocaleString()}/hr`
-                        : ""}
+                      {[
+                        pitch.size,
+                        pitch.surface_type,
+                        pitchPriceLabel(pitch),
+                        pitchPlayersLabel(pitch),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
                     <p className={styles.pitch_opens}>
-                      Opens {pitch.opens_at.slice(0, 5)} to {pitch.closes_at.slice(0, 5)}
+                      Opens {pitch.opens_at.slice(0, 5)} to{" "}
+                      {pitch.closes_at.slice(0, 5)}
                     </p>
                   </div>
 
@@ -317,7 +346,12 @@ export default function VenueDetail({ venue, amenities }: VenueDetailProps) {
             >
               {messageBlock}
               <div className={styles.confirm_actions}>
-                <Button type="button" variant="outline" onClick={closeModal} disabled={isPending}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeModal}
+                  disabled={isPending}
+                >
                   Cancel
                 </Button>
                 <Button
@@ -343,7 +377,12 @@ export default function VenueDetail({ venue, amenities }: VenueDetailProps) {
             >
               {messageBlock}
               <div className={styles.confirm_actions}>
-                <Button type="button" variant="outline" onClick={closeModal} disabled={isPending}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeModal}
+                  disabled={isPending}
+                >
                   Cancel
                 </Button>
                 <Button

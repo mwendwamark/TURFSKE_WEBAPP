@@ -24,7 +24,7 @@ export default async function ExplorePage() {
     supabase
       .from("venues")
       .select(
-        "id, name, address_text, latitude, longitude, venue_images(id, venue_id, storage_path, position), pitches(id, venue_id, name, sport_type, size, price_per_hour, surface_type, status, opens_at, closes_at, pitch_images(id, pitch_id, storage_path, position)), venue_amenities(amenity_id, amenities(id, name))",
+        "id, name, address_text, latitude, longitude, venue_images(id, venue_id, storage_path, position), seating_capacity, spectator_fee, pitches(id, venue_id, name, sport_type, size, price_per_hour, pricing_model, min_players, max_players, surface_type, status, opens_at, closes_at, pitch_images(id, pitch_id, storage_path, position)), venue_amenities(amenity_id, amenities(id, name))",
       )
       .order("created_at", { ascending: false }),
     supabase.from("amenities").select("id, name").order("name"),
