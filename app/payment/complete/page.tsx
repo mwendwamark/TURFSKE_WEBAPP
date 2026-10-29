@@ -38,10 +38,20 @@ export default async function PaymentCompletePage({
     );
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .maybeSingle();
+
   return (
     <main>
       <Navbar variant="secondary" />
-      <PaymentStatus reference={reference} />
+      <PaymentStatus
+        reference={reference}
+        payerName={profile?.full_name ?? null}
+        payerEmail={user.email ?? null}
+      />
     </main>
   );
 }

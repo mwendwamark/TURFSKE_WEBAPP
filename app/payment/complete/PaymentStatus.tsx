@@ -3,48 +3,43 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Button from "@/components/ui/buttons/Button";
 import { createClient } from "@/utils/supabase/client";
+import {
+  ReceiptPrinter,
+  type PrinterStage,
+} from "@/components/receipt/ReceiptPrinter";
+import ReceiptDocument from "@/components/receipt/ReceiptDocument";
+import {
+  RECEIPT_SELECT,
+  formatRange,
+  isPaidRow,
+  kes,
+  toReceiptData,
+  type ReceiptPaymentRow,
+} from "@/components/receipt/receipt-data";
 import styles from "./PaymentStatus.module.css";
-
-type PaymentRow = {
-  reference: string;
-  status: string;
-  bookings: {
-    status: string;
-    refund_required: boolean;
-    start_time: string;
-    end_time: string;
-    total_amount: number;
-    pitches: { name: string; venues: { name: string } | null } | null;
-  } | null;
-};
 
 type LoadState = "loading" | "ready" | "not_found" | "error";
 
 const POLL_MS = 3000;
 const GIVE_UP_MS = 90_000;
-const TZ = "Africa/Nairobi";
+const PRINT_MS = 2000;
 
-function formatRange(startIso: string, endIso: string): string {
-  const day = new Intl.DateTimeFormat("en-GB", {
-    timeZone: TZ,
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  }).format(new Date(startIso));
-  const time = new Intl.DateTimeFormat("en-GB", {
-    timeZone: TZ,
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  return `${day}, ${time.format(new Date(startIso))} to ${time.format(new Date(endIso))}`;
-}
+type PaymentStatusProps = {
+  reference: string;
+  payerName: string | null;
+  payerEmail: string | null;
+};
 
-export function PaymentStatus({ reference }: { reference: string }) {
-  const [row, setRow] = useState<PaymentRow | null>(null);
+export function PaymentStatus({
+  reference,
+  payerName,
+  payerEmail,
+}: PaymentStatusProps) {
+  const [row, setRow] = useState<ReceiptPaymentRow | null>(null);
   const [state, setState] = useState<LoadState>("loading");
   const [timedOut, setTimedOut] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [printed, setPrinted] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,9 +50,7 @@ export function PaymentStatus({ reference }: { reference: string }) {
     async function poll() {
       const { data, error } = await supabase
         .from("booking_payments")
-        .select(
-          "reference, status, bookings(status, refund_required, start_time, end_time, total_amount, pitches(name, venues(name)))",
-        )
+        .select(RECEIPT_SELECT)
         .eq("reference", reference)
         .maybeSingle();
 
@@ -73,14 +66,11 @@ export function PaymentStatus({ reference }: { reference: string }) {
         return;
       }
 
-      const next = data as unknown as PaymentRow;
+      const next = data as unknown as ReceiptPaymentRow;
       setRow(next);
       setState("ready");
 
-      const done =
-        next.bookings?.status === "confirmed" ||
-        next.bookings?.refund_required === true;
-      if (done) return;
+      if (isPaidRow(next) || next.bookings?.refund_required === true) return;
 
       if (Date.now() - started >= GIVE_UP_MS) {
         setTimedOut(true);
@@ -98,13 +88,20 @@ export function PaymentStatus({ reference }: { reference: string }) {
   }, [reference, attempt]);
 
   const booking = row?.bookings ?? null;
-  const confirmed = booking?.status === "confirmed";
+  const paid = row ? isPaidRow(row) : false;
   const refund = booking?.refund_required === true;
 
-  let content: ReactNode;
+  // Once the payment is confirmed the paper feeds out, then we mark it done.
+  useEffect(() => {
+    if (!paid) return;
+    const timer = setTimeout(() => setPrinted(true), PRINT_MS);
+    return () => clearTimeout(timer);
+  }, [paid]);
+
+  let message: ReactNode = null;
 
   if (state === "error") {
-    content = (
+    message = (
       <>
         <p className={styles.status_text}>
           We couldn&apos;t check your payment. Check your connection and try again.
@@ -124,7 +121,7 @@ export function PaymentStatus({ reference }: { reference: string }) {
       </>
     );
   } else if (state === "not_found") {
-    content = (
+    message = (
       <>
         <p className={styles.status_text}>We couldn&apos;t find this payment.</p>
         <div className={styles.actions}>
@@ -135,7 +132,7 @@ export function PaymentStatus({ reference }: { reference: string }) {
       </>
     );
   } else if (refund) {
-    content = (
+    message = (
       <>
         <p className={styles.status_text}>
           We received your payment but the slot is no longer available. We will
@@ -148,40 +145,8 @@ export function PaymentStatus({ reference }: { reference: string }) {
         </div>
       </>
     );
-  } else if (confirmed && booking) {
-    content = (
-      <>
-        <p className={styles.success_title}>Booking confirmed</p>
-        <div className={styles.details}>
-          <div className={styles.row}>
-            <span className={styles.row_label}>Venue</span>
-            <span>{booking.pitches?.venues?.name ?? "Venue"}</span>
-          </div>
-          <div className={styles.row}>
-            <span className={styles.row_label}>Pitch</span>
-            <span>{booking.pitches?.name ?? "Pitch"}</span>
-          </div>
-          <div className={styles.row}>
-            <span className={styles.row_label}>When</span>
-            <span>{formatRange(booking.start_time, booking.end_time)}</span>
-          </div>
-          <div className={styles.row}>
-            <span className={styles.row_label}>Paid</span>
-            <span>KES {Number(booking.total_amount).toLocaleString()}</span>
-          </div>
-        </div>
-        <div className={styles.actions}>
-          <Button variant="outline" href="/explore">
-            Back to Explore
-          </Button>
-          <Button variant="primary" href="/dashboard">
-            Go to dashboard
-          </Button>
-        </div>
-      </>
-    );
-  } else if (timedOut) {
-    content = (
+  } else if (timedOut && !paid) {
+    message = (
       <>
         <p className={styles.status_text}>
           We haven&apos;t received confirmation yet. If money left your M-Pesa,
@@ -197,15 +162,65 @@ export function PaymentStatus({ reference }: { reference: string }) {
         </div>
       </>
     );
-  } else {
-    content = <p className={`${styles.status_text} ${styles.pulse}`}>Confirming your payment...</p>;
   }
+
+  if (message) {
+    return (
+      <div className={`section ${styles.wrap}`}>
+        <div className={styles.card}>
+          <h1 className={styles.title}>Payment</h1>
+          {message}
+        </div>
+      </div>
+    );
+  }
+
+  // Printer view: waiting, printing or done.
+  const stage: PrinterStage = !paid ? "processing" : printed ? "complete" : "printing";
+  const receipt =
+    row && paid
+      ? toReceiptData(row, { name: payerName, email: payerEmail })
+      : null;
+
+  const title = booking
+    ? `${booking.pitches?.venues?.name ?? "Venue"}, ${booking.pitches?.name ?? "Pitch"}`
+    : "Checking your payment";
+  const subtitle = booking
+    ? formatRange(booking.start_time, booking.end_time)
+    : undefined;
+  const amount = booking ? kes(Number(booking.total_amount)) : undefined;
 
   return (
     <div className={`section ${styles.wrap}`}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Payment</h1>
-        {content}
+      <div className={styles.printer_wrap}>
+        <ReceiptPrinter
+          stage={stage}
+          title={title}
+          subtitle={subtitle}
+          amount={amount}
+        >
+          {receipt && <ReceiptDocument data={receipt} />}
+        </ReceiptPrinter>
+
+        {stage === "complete" && (
+          <div className={styles.actions}>
+            <Button
+              variant="primary"
+              arrow={false}
+              href={`/payment/receipt?reference=${encodeURIComponent(reference)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Print or save receipt
+            </Button>
+            <Button variant="outline" href="/explore">
+              Back to Explore
+            </Button>
+            <Button variant="outline" href="/dashboard">
+              Go to dashboard
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

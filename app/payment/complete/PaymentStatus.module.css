@@ -73,3 +73,11 @@
     opacity: 0.45;
   }
 }
+
+.printer_wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+}
