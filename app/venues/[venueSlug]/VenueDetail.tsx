@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import BookingPanel from "./BookingPanel";
 import {
@@ -33,6 +33,7 @@ import {
   pitchStartingPrice,
 } from "@/utils/pricing";
 import styles from "./VenueDetail.module.css";
+import ShareButton from "@/components/share/ShareButton";
 
 /**
  * What the Book now / Select buttons do, decided server side on the
@@ -100,12 +101,39 @@ function formatPrice(price: number): string {
 type VenueDetailProps = {
   venue: VenueWithRelations;
   auth: BookingAuthState;
+  /** If provided, the BookingPanel will open with this pitch preselected. */
+  preselectedPitchId?: string;
 };
 
-export default function VenueDetail({ venue, auth }: VenueDetailProps) {
+export default function VenueDetail({
+  venue,
+  auth,
+  preselectedPitchId,
+}: VenueDetailProps) {
   const activePitches = venue.pitches.filter((p) => p.status === "active");
-  const [openPitchId, setOpenPitchId] = useState<string | null>(null);
+  // Initialize openPitchId from the preselectedPitchId prop (server-side deep link).
+  const [openPitchId, setOpenPitchId] = useState<
+    string | null
+  >(preselectedPitchId ?? null);
   const openPitch = activePitches.find((p) => p.id === openPitchId);
+
+  // Keep the address bar in step with the open panel, so a refresh, a
+  // copied link or the browser's back button restores the same pitch.
+  // replaceState is a shallow update: no navigation, no server render.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const current = url.searchParams.get("pitch");
+    if (openPitchId === current) return;
+
+    if (openPitchId) url.searchParams.set("pitch", openPitchId);
+    else url.searchParams.delete("pitch");
+
+    window.history.replaceState(
+      null,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+  }, [openPitchId]);
   const amenityNames = venue.venue_amenities
     .map((link) => link.amenities?.name)
     .filter((name): name is string => Boolean(name));
@@ -130,7 +158,7 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
   // them to /dashboard, which would silently swallow the booking action.
   // Guests get the signup link with a ?next return path instead.
   const bookingHref = `/auth/signup?next=${encodeURIComponent(
-    `/venues/${venue.id}`,
+    `/venues/${venue.slug}`,
   )}`;
   const isGuest = auth.kind === "guest";
   const isPlayer = auth.kind === "player";
@@ -239,6 +267,12 @@ export default function VenueDetail({ venue, auth }: VenueDetailProps) {
                 {venue.latitude.toFixed(4)}, {venue.longitude.toFixed(4)}
               </p>
             )}
+
+            <ShareButton
+              path={`/venues/${venue.slug}`}
+              title={venue.name}
+              text={`Check out ${venue.name} on TurfsKE`}
+            />
           </div>
 
           {amenityNames.length > 0 && (

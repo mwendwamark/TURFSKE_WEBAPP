@@ -20,6 +20,7 @@ import { pitchStartingPrice } from "@/utils/pricing";
 type VenueCard = {
   id: string;
   name: string;
+  slug: string;
   address: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -62,6 +63,7 @@ function venueToCard(venue: VenueWithRelations): VenueCard {
   return {
     id: venue.id,
     name: venue.name,
+    slug: venue.slug,
     address: venue.address_text,
     latitude: venue.latitude,
     longitude: venue.longitude,
@@ -371,7 +373,7 @@ export default function Explore({
             {filteredTurfs.map((turf) => (
               <Link
                 key={turf.id}
-                href={`/venues/${turf.id}`}
+                href={`/venues/${turf.slug}`}
                 className={styles.card}
               >
                 <div className={styles.thumb}>

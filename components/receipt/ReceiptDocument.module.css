@@ -51,6 +51,10 @@
   word-break: break-all;
 }
 
+.value_small {
+  font-size: 0.66rem;
+}
+
 .lines {
   display: flex;
   flex-direction: column;

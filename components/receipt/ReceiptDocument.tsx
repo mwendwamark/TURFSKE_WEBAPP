@@ -6,11 +6,21 @@ import {
   type ReceiptData,
 } from "./receipt-data";
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({
+  label,
+  value,
+  small,
+}: {
+  label: string;
+  value: string;
+  small?: boolean;
+}) {
   return (
     <div className={styles.row}>
       <dt className={styles.label}>{label}</dt>
-      <dd className={styles.value}>{value}</dd>
+      <dd className={`${styles.value} ${small ? styles.value_small : ""}`}>
+        {value}
+      </dd>
     </div>
   );
 }
@@ -23,7 +33,7 @@ export default function ReceiptDocument({ data }: { data: ReceiptData }) {
       <hr className={styles.rule} />
 
       <dl className={styles.meta}>
-        <Row label="Receipt no." value={data.reference} />
+        <Row label="Receipt no." value={data.reference} small />
         {data.paidAt && <Row label="Paid on" value={formatDateTime(data.paidAt)} />}
         {data.payerName && <Row label="Customer" value={data.payerName} />}
         {data.payerEmail && <Row label="Email" value={data.payerEmail} />}

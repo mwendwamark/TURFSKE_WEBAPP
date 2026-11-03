@@ -53,6 +53,7 @@ export type VenueAmenityLink = {
 };
 
 export type VenueWithRelations = Venue & {
+  slug: string;
   pitches: Pitch[];
   venue_amenities: VenueAmenityLink[];
   venue_images: VenueImage[];
