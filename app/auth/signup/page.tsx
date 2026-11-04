@@ -11,6 +11,7 @@ import { HiMiniArrowLongLeft } from "react-icons/hi2";
 import { FcGoogle } from "react-icons/fc";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import Button from "@/components/ui/buttons/Button";
+import { normalizeKenyanPhone } from "@/utils/phone";
 
 export default function SignUpPage({
   searchParams,
@@ -42,6 +43,17 @@ export default function SignUpPage({
     setMessage(null);
     const formData = new FormData(e.currentTarget);
     formData.set("role", role);
+
+    const phoneInput = formData.get("phone");
+    const phone = typeof phoneInput === "string" ? normalizeKenyanPhone(phoneInput) : null;
+    if (!phone) {
+      setMessage({
+        type: "error",
+        text: "Enter a valid Kenyan phone number, e.g. 0712 345 678.",
+      });
+      return;
+    }
+    formData.set("phone", phone);
 
     startTransition(async () => {
       const result = await signUp(formData);
@@ -153,6 +165,19 @@ export default function SignUpPage({
                 name="email"
                 type="email"
                 placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="phone">Phone Number</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="0712 345 678"
                 required
               />
             </div>

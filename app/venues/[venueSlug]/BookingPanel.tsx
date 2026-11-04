@@ -89,6 +89,10 @@ const ERRORS: [string, string][] = [
   ["players_required", "Choose how many players."],
   ["invalid_players", "That number of players isn't allowed for this pitch."],
   ["invalid_spectators", "That number of spectators isn't allowed."],
+  [
+    "phone_required",
+    "Add your phone number to book a pitch. The venue sees it only after you pay.",
+  ],
 ];
 
 function friendlyError(message: string): string {
@@ -162,6 +166,7 @@ export default function BookingPanel({
   const [result, setResult] = useState<FetchResult | null>(null);
   const [holding, setHolding] = useState(false);
   const [holdError, setHoldError] = useState<string | null>(null);
+  const [phoneRequired, setPhoneRequired] = useState(false);
   const [held, setHeld] = useState<Held | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [paying, setPaying] = useState(false);
@@ -241,6 +246,7 @@ export default function BookingPanel({
     const start = slotStartMs(date, selectedHour);
     setHolding(true);
     setHoldError(null);
+    setPhoneRequired(false);
 
     const { data, error } = await supabase.rpc("create_booking", {
       p_pitch_id: pitch.id,
@@ -252,6 +258,7 @@ export default function BookingPanel({
     setHolding(false);
 
     if (error) {
+      setPhoneRequired(error.message.includes("phone_required"));
       setHoldError(friendlyError(error.message));
       if (error.message.includes("slot_taken")) {
         setSelectedHour(null);
@@ -458,9 +465,18 @@ export default function BookingPanel({
       )}
 
       {holdError && (
-        <p className={styles.error} role="alert">
-          {holdError}
-        </p>
+        <div className={styles.error} role="alert">
+          <p>{holdError}</p>
+          {phoneRequired && (
+            <Button
+              variant="outline"
+              href="/dashboard/settings"
+              arrow={false}
+            >
+              Add phone number
+            </Button>
+          )}
+        </div>
       )}
 
       {held && (

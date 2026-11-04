@@ -4,6 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { isProfileRole, upsertProfile } from "@/utils/auth/profile";
+import { normalizeKenyanPhone } from "@/utils/phone";
 
 async function createClient() {
   const cookieStore = await cookies();
@@ -85,6 +86,15 @@ export async function signUp(formData: FormData) {
   const fullName = formData.get("full_name") as string;
   const role = formData.get("role") as "player" | "manager";
 
+  const phoneInput = formData.get("phone");
+  const phone =
+    typeof phoneInput === "string" ? normalizeKenyanPhone(phoneInput) : null;
+  if (!phone) {
+    return {
+      error: "Enter a valid Kenyan phone number, e.g. 0712 345 678.",
+    };
+  }
+
   // Return path carried in from e.g. the venue page's
   // "Book now" button. Only internal paths are honored —
   // the callback applies the same open-redirect guard
@@ -111,7 +121,7 @@ export async function signUp(formData: FormData) {
     email,
     password,
     options: {
-      data: { full_name: fullName, role },
+      data: { full_name: fullName, role, phone },
       emailRedirectTo: callbackUrl.toString(),
     },
   });

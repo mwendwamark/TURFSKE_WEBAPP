@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
+import { normalizeKenyanPhone } from "@/utils/phone";
 import type { ActionResult, ActionResultWithData, BankOption } from "./types";
 
 const PAYSTACK_API = "https://api.paystack.co";
@@ -1156,6 +1157,14 @@ export async function updateSettingsAction(
     return { success: false, error: "Please enter your full name." };
   }
 
+  const phoneNumber = normalizeKenyanPhone(input.phoneNumber);
+  if (!phoneNumber) {
+    return {
+      success: false,
+      error: "Enter a valid Kenyan phone number, e.g. 0712 345 678.",
+    };
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
@@ -1166,7 +1175,7 @@ export async function updateSettingsAction(
     .from("profiles")
     .update({
       full_name: fullName,
-      phone_number: input.phoneNumber.trim() || null,
+      phone_number: phoneNumber,
     })
     .eq("id", user.id);
 

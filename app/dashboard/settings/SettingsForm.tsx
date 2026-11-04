@@ -4,6 +4,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/buttons/Button";
 import { updateSettingsAction } from "../actions";
+import { normalizeKenyanPhone } from "@/utils/phone";
 import styles from "./Settings.module.css";
 
 type SettingsFormProps = {
@@ -29,10 +30,19 @@ export default function SettingsForm({ initial, isManager }: SettingsFormProps) 
     event.preventDefault();
     setMessage(null);
 
+    const normalizedPhone = normalizeKenyanPhone(phoneNumber);
+    if (!normalizedPhone) {
+      setMessage({
+        type: "error",
+        text: "Enter a valid Kenyan phone number, e.g. 0712 345 678.",
+      });
+      return;
+    }
+
     startTransition(async () => {
       const result = await updateSettingsAction({
         fullName,
-        phoneNumber,
+        phoneNumber: normalizedPhone,
         businessName: isManager ? businessName : "",
       });
 
@@ -88,7 +98,8 @@ export default function SettingsForm({ initial, isManager }: SettingsFormProps) 
             inputMode="tel"
             value={phoneNumber}
             onChange={(event) => setPhoneNumber(event.target.value)}
-            placeholder="e.g. 0712345678"
+            placeholder="e.g. 0712 345 678"
+            required
           />
           <p className={styles.hint}>Used for payout notifications and booking updates.</p>
         </div>

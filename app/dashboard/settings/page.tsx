@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import SettingsForm from "./SettingsForm";
+import { formatPhoneDisplay } from "@/utils/phone";
 
 export default async function SettingsPage() {
   const cookieStore = await cookies();
@@ -37,7 +38,9 @@ export default async function SettingsPage() {
     <SettingsForm
       initial={{
         fullName: profile?.full_name || user.email || "",
-        phoneNumber: profile?.phone_number ?? "",
+        phoneNumber: profile?.phone_number
+          ? formatPhoneDisplay(profile.phone_number)
+          : "",
         businessName: businessName ?? "",
       }}
       isManager={role === "manager"}
