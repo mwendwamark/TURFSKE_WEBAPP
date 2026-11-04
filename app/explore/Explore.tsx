@@ -405,9 +405,9 @@ export default function Explore({
                 <div className={styles.cardBody}>
                   <h3 className={styles.cardName}>{turf.name}</h3>
                   {turf.address && (
-                    <p className={styles.cardLocation}>
+                    <p className={styles.cardLocation} title={turf.address}>
                       <TbMapPin className={styles.pinIcon} aria-hidden="true" />
-                      {turf.address}
+                      <span className={styles.cardAddress}>{turf.address}</span>
                     </p>
                   )}
 

@@ -18,6 +18,11 @@ import type { Pitch } from "./types";
 import styles from "./ManagerDashboard.module.css";
 
 const SIZE_OPTIONS = ["5-a-side", "7-a-side", "11-a-side"] as const;
+const SURFACE_OPTIONS = [
+  "Artificial Grass",
+  "Natural Grass",
+  "Artificial and Natural Grass",
+];
 const OPEN_HOURS = Array.from(
   { length: 24 },
   (_, h) => `${String(h).padStart(2, "0")}:00`,
@@ -55,6 +60,10 @@ export default function PitchForm({
     pitch?.price_per_hour != null ? String(pitch.price_per_hour) : null,
   );
   const [surfaceType, setSurfaceType] = useState(pitch?.surface_type ?? "");
+  const surfaceOptions =
+    surfaceType && !SURFACE_OPTIONS.includes(surfaceType)
+      ? [surfaceType, ...SURFACE_OPTIONS]
+      : SURFACE_OPTIONS;
   const [status, setStatus] = useState<"active" | "inactive">(
     pitch?.status === "inactive" ? "inactive" : "active",
   );
@@ -249,7 +258,10 @@ export default function PitchForm({
       }
       onClose={onClose}
     >
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <form
+        className={`${styles.form} ${styles.pitch_form}`}
+        onSubmit={handleSubmit}
+      >
         <div className={styles.field}>
           <label htmlFor="pitch-name">Pitch name</label>
           <input
@@ -292,34 +304,20 @@ export default function PitchForm({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="pitch-price">
-            {pricingModel === "per_person"
-              ? "Price per person per hour (KES)"
-              : "Price per hour (KES)"}
-          </label>{" "}
-          <input
-            id="pitch-price"
-            name="price_per_hour"
-            type="number"
-            min="0"
-            inputMode="numeric"
-            value={pricePerHour ?? ""}
-            onChange={(event) => setPricePerHour(event.target.value || null)}
-            placeholder="e.g. 1500"
-            required
-          />
-        </div>
-
-        <div className={styles.field}>
           <label htmlFor="pitch-surface">Surface type</label>
-          <input
+          <select
             id="pitch-surface"
             name="surface_type"
-            type="text"
             value={surfaceType}
             onChange={(event) => setSurfaceType(event.target.value)}
-            placeholder="e.g. Artificial turf"
-          />
+          >
+            <option value="">Select surface type</option>
+            {surfaceOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className={styles.field}>
@@ -410,6 +408,25 @@ export default function PitchForm({
             />
           </div>
         )}
+
+        <div className={styles.field}>
+          <label htmlFor="pitch-price">
+            {pricingModel === "per_person"
+              ? "Price per person per hour (KES)"
+              : "Price per hour (KES)"}
+          </label>{" "}
+          <input
+            id="pitch-price"
+            name="price_per_hour"
+            type="number"
+            min="0"
+            inputMode="numeric"
+            value={pricePerHour ?? ""}
+            onChange={(event) => setPricePerHour(event.target.value || null)}
+            placeholder="e.g. 1500"
+            required
+          />
+        </div>
 
         <div className={styles.field}>
           <label htmlFor="pitch-opens">Opens</label>

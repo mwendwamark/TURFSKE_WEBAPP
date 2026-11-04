@@ -10,16 +10,27 @@ function Row({
   label,
   value,
   small,
+  code,
+  hint,
 }: {
   label: string;
   value: string;
   small?: boolean;
+  code?: boolean;
+  hint?: string;
 }) {
   return (
     <div className={styles.row}>
       <dt className={styles.label}>{label}</dt>
-      <dd className={`${styles.value} ${small ? styles.value_small : ""}`}>
+      <dd
+        className={`${styles.value} ${small ? styles.value_small : ""} ${
+          code ? styles.value_code : ""
+        }`}
+      >
         {value}
+        {hint && (
+          <span className={`${styles.note} ${styles.value_hint}`}>{hint}</span>
+        )}
       </dd>
     </div>
   );
@@ -34,6 +45,14 @@ export default function ReceiptDocument({ data }: { data: ReceiptData }) {
 
       <dl className={styles.meta}>
         <Row label="Receipt no." value={data.reference} small />
+        {data.bookingCode && (
+          <Row
+            label="Booking code"
+            value={data.bookingCode}
+            code
+            hint="Show this code at the venue"
+          />
+        )}
         {data.paidAt && <Row label="Paid on" value={formatDateTime(data.paidAt)} />}
         {data.payerName && <Row label="Customer" value={data.payerName} />}
         {data.payerEmail && <Row label="Email" value={data.payerEmail} />}

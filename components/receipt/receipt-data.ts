@@ -1,7 +1,7 @@
 const TZ = "Africa/Nairobi";
 
 export const RECEIPT_SELECT =
-  "reference, status, bookings(status, refund_required, start_time, end_time, total_amount, pricing_model, players, spectators, pitch_amount, spectator_amount, spectator_fee_snapshot, price_snapshot, paid_at, pitches(name, venues(name)))";
+  "reference, status, bookings(status, refund_required, booking_code, start_time, end_time, total_amount, pricing_model, players, spectators, pitch_amount, spectator_amount, spectator_fee_snapshot, price_snapshot, paid_at, pitches(name, venues(name)))";
 
 type Money = number | string | null;
 
@@ -11,6 +11,7 @@ export type ReceiptPaymentRow = {
   bookings: {
     status: string;
     refund_required: boolean;
+    booking_code: string | null;
     start_time: string;
     end_time: string;
     total_amount: Money;
@@ -30,6 +31,7 @@ export type ReceiptLine = { label: string; amount: number };
 
 export type ReceiptData = {
   reference: string;
+  bookingCode: string | null;
   paidAt: string | null;
   payerName: string | null;
   payerEmail: string | null;
@@ -129,6 +131,7 @@ export function toReceiptData(
 
   return {
     reference: row.reference,
+    bookingCode: booking.booking_code,
     paidAt: booking.paid_at,
     payerName: payer.name,
     payerEmail: payer.email,

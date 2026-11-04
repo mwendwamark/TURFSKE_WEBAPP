@@ -418,6 +418,17 @@
   color: var(--grey);
 }
 
+/* Pitch form: keep every label, control and helper at 15px. */
+.pitch_form .field label,
+.pitch_form .field > span,
+.pitch_form .field input,
+.pitch_form .field select,
+.pitch_form .toggle_btn,
+.pitch_form .field_hint,
+.pitch_form .media_label {
+  font-size: 15px;
+}
+
 .row_2col {
   display: grid;
   grid-template-columns: 1fr 1fr;
