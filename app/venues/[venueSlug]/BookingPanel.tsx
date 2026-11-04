@@ -9,8 +9,24 @@ import { startPaymentAction } from "./payment-actions";
 import type { Pitch } from "@/app/dashboard/types";
 import styles from "./BookingPanel.module.css";
 
-const TZ = "Africa/Nairobi";
 const HOUR_MS = 3_600_000;
+const NAIROBI_OFFSET_MS = 3 * HOUR_MS;
+
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 type BookedRange = { start: number; end: number };
 type FetchResult = { key: string; booked: BookedRange[]; error: string | null };
@@ -25,9 +41,9 @@ type Held = {
 const pad = (n: number) => String(n).padStart(2, "0");
 const kes = (n: number) => `KES ${n.toLocaleString()}`;
 
-// "2026-10-13" in Nairobi, regardless of the browser's timezone.
+// "2026-10-13" in Nairobi (UTC+3, no DST), regardless of the browser's timezone.
 function nairobiToday(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
+  return new Date(Date.now() + NAIROBI_OFFSET_MS).toISOString().slice(0, 10);
 }
 
 function addDays(day: string, n: number): string {
@@ -36,13 +52,10 @@ function addDays(day: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+// "Wed 4 Nov" from a Nairobi calendar date, with no locale formatting.
 function dayLabel(day: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: TZ,
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  }).format(new Date(`${day}T12:00:00+03:00`));
+  const d = new Date(`${day}T00:00:00Z`);
+  return `${DAY_NAMES[d.getUTCDay()]} ${d.getUTCDate()} ${MONTH_NAMES[d.getUTCMonth()]}`;
 }
 
 function slotStartMs(day: string, hour: number): number {

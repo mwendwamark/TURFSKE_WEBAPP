@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/server";
 import Navbar from "@/components/navbar/Navbar";
 import VenueDetail, { type BookingAuthState } from "./VenueDetail";
 import type { VenueWithRelations } from "../../dashboard/types";
+import { slugify } from "@/utils/slug";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -35,13 +36,6 @@ const getVenue = cache(async (param: string): Promise<VenueLookup | null> => {
 
   return { venue: data as unknown as VenueWithRelations, viaId };
 });
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 /** ?pitch= can be a pitch id or a pitch name slug. Unknown values are
  * ignored. If multiple active pitches share the same slug, the first one

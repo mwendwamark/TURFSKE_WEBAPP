@@ -32,6 +32,7 @@ import {
   pitchPriceLabel,
   pitchStartingPrice,
 } from "@/utils/pricing";
+import { slugify } from "@/utils/slug";
 import styles from "./VenueDetail.module.css";
 import ShareButton from "@/components/share/ShareButton";
 
@@ -123,9 +124,19 @@ export default function VenueDetail({
   useEffect(() => {
     const url = new URL(window.location.href);
     const current = url.searchParams.get("pitch");
-    if (openPitchId === current) return;
 
-    if (openPitchId) url.searchParams.set("pitch", openPitchId);
+    let next: string | null = null;
+    if (openPitch) {
+      const slug = slugify(openPitch.name);
+      const matches = slug
+        ? activePitches.filter((pitch) => slugify(pitch.name) === slug)
+        : [];
+      next = slug && matches.length === 1 ? slug : openPitch.id;
+    }
+
+    if (next === current) return;
+
+    if (next) url.searchParams.set("pitch", next);
     else url.searchParams.delete("pitch");
 
     window.history.replaceState(
@@ -133,7 +144,7 @@ export default function VenueDetail({
       "",
       `${url.pathname}${url.search}${url.hash}`,
     );
-  }, [openPitchId]);
+  }, [openPitchId, openPitch, activePitches]);
   const amenityNames = venue.venue_amenities
     .map((link) => link.amenities?.name)
     .filter((name): name is string => Boolean(name));
