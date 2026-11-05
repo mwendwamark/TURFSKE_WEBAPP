@@ -121,11 +121,13 @@ export default async function OverviewPage({
       <div className={styles.welcome_card}>
         <h2 className={styles.welcome_title}>Welcome, {fullName}</h2>
         <p className={styles.welcome_text}>
-          Find football pitches near you and book them in minutes. Booking is
-          coming soon — for now, browse the pitches available on TurfsKE.
+          Find a pitch, book it, and keep your codes and receipts in one place.
         </p>
-        <div>
-          <Button href="/explore">Browse pitches</Button>
+        <div className={styles.welcome_actions}>
+          <Button href="/dashboard/bookings">View my bookings</Button>
+          <Button href="/dashboard/explore" variant="outline">
+            Browse pitches
+          </Button>
         </div>
       </div>
     </div>

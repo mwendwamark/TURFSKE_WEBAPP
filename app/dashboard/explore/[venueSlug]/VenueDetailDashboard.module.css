@@ -1,0 +1,26 @@
+/* The public venue page carries its own large section padding and max width.
+   Inside the dashboard the shell already handles spacing, so let the venue
+   layout fill the content column. */
+.embed > :global(.section) {
+  padding: 0;
+  max-width: none;
+  margin: 0;
+}
+
+/* Keep the public fixed bottom booking bar clear of the page content on
+   small screens, matching the public page's own mobile spacing. */
+@media (max-width: 999px) {
+  .embed > :global(.section) {
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* The dashboard sidebar is still visible between 901px and 999px, while the
+   public venue bottom bar starts showing at 999px. Keep that bar inside the
+   dashboard content column so it doesn't cover the sidebar user block. */
+@media (min-width: 901px) and (max-width: 999px) {
+  .embed > :global(.section) > :global([class*="bottom_bar"]) {
+    left: calc(252px + 2.75rem + 0.5rem);
+    right: calc(1.5rem + 0.5rem);
+  }
+}

@@ -125,8 +125,8 @@ export function PaymentStatus({
       <>
         <p className={styles.status_text}>We couldn&apos;t find this payment.</p>
         <div className={styles.actions}>
-          <Button variant="outline" href="/explore">
-            Back to Explore
+          <Button variant="outline" href="/dashboard/explore">
+            Find another pitch
           </Button>
         </div>
       </>
@@ -139,8 +139,8 @@ export function PaymentStatus({
           refund you. Contact support if you don&apos;t hear from us.
         </p>
         <div className={styles.actions}>
-          <Button variant="outline" href="/explore">
-            Back to Explore
+          <Button variant="outline" href="/dashboard/explore">
+            Find another pitch
           </Button>
         </div>
       </>
@@ -156,8 +156,8 @@ export function PaymentStatus({
           <Button type="button" variant="outline" onClick={() => window.location.reload()}>
             Refresh
           </Button>
-          <Button variant="outline" href="/explore">
-            Back to Explore
+          <Button variant="outline" href="/dashboard/explore">
+            Find another pitch
           </Button>
         </div>
       </>
@@ -213,11 +213,11 @@ export function PaymentStatus({
             >
               Print or save receipt
             </Button>
-            <Button variant="outline" href="/explore">
-              Back to Explore
+            <Button variant="outline" href="/dashboard/explore">
+              Find another pitch
             </Button>
-            <Button variant="outline" href="/dashboard">
-              Go to dashboard
+            <Button variant="outline" href="/dashboard/bookings">
+              My bookings
             </Button>
           </div>
         )}

@@ -81,6 +81,12 @@
   line-height: 1.55;
 }
 
+.welcome_actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 .section_head {
   display: flex;
   align-items: center;
@@ -286,7 +292,7 @@
   color: var(--black);
   text-decoration: none;
   transition: border-color var(--transition-fast);
-  border: 3px solid var(--primary_green);
+  border: 1px solid var(--primary_green);
 }
 
 .stat_card_link:hover {

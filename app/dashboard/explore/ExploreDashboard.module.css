@@ -1,0 +1,10 @@
+/* The public Explore page uses the global section_hero spacing. Inside the
+   dashboard that spacing pushes the content far below the topbar, so remove
+   it and let the shell's content padding control the layout. */
+.embed :global(.section_hero) {
+  padding: 0;
+}
+
+.embed :global(.container) {
+  max-width: 100%;
+}

@@ -104,12 +104,17 @@ type VenueDetailProps = {
   auth: BookingAuthState;
   /** If provided, the BookingPanel will open with this pitch preselected. */
   preselectedPitchId?: string;
+  /** Override the role-aware back link when rendered outside the public page. */
+  backHref?: string;
+  backLabel?: string;
 };
 
 export default function VenueDetail({
   venue,
   auth,
   preselectedPitchId,
+  backHref,
+  backLabel,
 }: VenueDetailProps) {
   const activePitches = venue.pitches.filter((p) => p.status === "active");
   // Initialize openPitchId from the preselectedPitchId prop (server-side deep link).
@@ -248,11 +253,26 @@ export default function VenueDetail({
       ? "Pick a pitch and a time"
       : "Create a separate player account to book";
 
+  const defaultBackHref =
+    auth.kind === "guest"
+      ? "/explore"
+      : auth.kind === "player"
+        ? "/dashboard/explore"
+        : "/dashboard";
+  const defaultBackLabel =
+    auth.kind === "guest"
+      ? "Back to Explore"
+      : auth.kind === "player"
+        ? "Back to venues"
+        : "Back to dashboard";
+  const resolvedBackHref = backHref ?? defaultBackHref;
+  const resolvedBackLabel = backLabel ?? defaultBackLabel;
+
   return (
     <div className={` section ${styles.detail}`}>
-      <Link href="/explore" className={styles.back_link}>
+      <Link href={resolvedBackHref} className={styles.back_link}>
         <ArrowLeft size={16} />
-        Back to Explore
+        {resolvedBackLabel}
       </Link>
 
       {auth.kind === "notice" && <RoleNoticeBanner message={auth.message} />}

@@ -13,6 +13,7 @@ import {
   Settings,
   Users,
   Compass,
+  Home,
 } from "lucide-react";
 import SignOutButton from "@/components/auth/SignOutButton";
 import styles from "./DashboardShell.module.css";
@@ -21,33 +22,91 @@ type NavItem = {
   label: string;
   href: string;
   icon: ReactNode;
-  external?: boolean;
 };
 
 const NAV: Record<string, NavItem[]> = {
   manager: [
-    { label: "Overview", href: "/dashboard", icon: <LayoutDashboard size={18} /> },
-    { label: "My Venues", href: "/dashboard/venues", icon: <Building2 size={18} /> },
-    { label: "Bookings", href: "/dashboard/bookings", icon: <CalendarDays size={18} /> },
-    { label: "Payouts", href: "/dashboard/payouts", icon: <Wallet size={18} /> },
-    { label: "Settings", href: "/dashboard/settings", icon: <Settings size={18} /> },
+    {
+      label: "Overview",
+      href: "/dashboard",
+      icon: <LayoutDashboard size={18} />,
+    },
+    {
+      label: "My Venues",
+      href: "/dashboard/venues",
+      icon: <Building2 size={18} />,
+    },
+    {
+      label: "Bookings",
+      href: "/dashboard/bookings",
+      icon: <CalendarDays size={18} />,
+    },
+    {
+      label: "Payouts",
+      href: "/dashboard/payouts",
+      icon: <Wallet size={18} />,
+    },
+    {
+      label: "Settings",
+      href: "/dashboard/settings",
+      icon: <Settings size={18} />,
+    },
   ],
   player: [
-    { label: "Overview", href: "/dashboard", icon: <LayoutDashboard size={18} /> },
-    { label: "Find a Pitch", href: "/explore", icon: <Compass size={18} />, external: true },
-    { label: "My Bookings", href: "/dashboard/bookings", icon: <CalendarDays size={18} /> },
-    { label: "Settings", href: "/dashboard/settings", icon: <Settings size={18} /> },
+    {
+      label: "Overview",
+      href: "/dashboard",
+      icon: <LayoutDashboard size={18} />,
+    },
+    {
+      label: "Find a Pitch",
+      href: "/dashboard/explore",
+      icon: <Compass size={18} />,
+    },
+    {
+      label: "My Bookings",
+      href: "/dashboard/bookings",
+      icon: <CalendarDays size={18} />,
+    },
+    {
+      label: "Settings",
+      href: "/dashboard/settings",
+      icon: <Settings size={18} />,
+    },
   ],
   admin: [
-    { label: "Overview", href: "/dashboard", icon: <LayoutDashboard size={18} /> },
-    { label: "Managers", href: "/dashboard/admin/managers", icon: <Users size={18} /> },
-    { label: "Settings", href: "/dashboard/settings", icon: <Settings size={18} /> },
+    {
+      label: "Overview",
+      href: "/dashboard",
+      icon: <LayoutDashboard size={18} />,
+    },
+    {
+      label: "Managers",
+      href: "/dashboard/admin/managers",
+      icon: <Users size={18} />,
+    },
+    {
+      label: "Settings",
+      href: "/dashboard/settings",
+      icon: <Settings size={18} />,
+    },
   ],
 };
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/dashboard") return pathname === "/dashboard";
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function HomeLink({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <Link href="/" className={styles.nav_item} onClick={onNavigate}>
+      <span className={styles.nav_icon} aria-hidden="true">
+        <Home size={18} />
+      </span>
+      Back to home
+    </Link>
+  );
 }
 
 function NavList({
@@ -65,7 +124,9 @@ function NavList({
         const active = isActive(current, item.href);
         const content = (
           <>
-            <span className={styles.nav_icon} aria-hidden="true">{item.icon}</span>
+            <span className={styles.nav_icon} aria-hidden="true">
+              {item.icon}
+            </span>
             {item.label}
           </>
         );
@@ -91,7 +152,10 @@ type DashboardShellProps = {
   children: ReactNode;
 };
 
-export default function DashboardShell({ user, children }: DashboardShellProps) {
+export default function DashboardShell({
+  user,
+  children,
+}: DashboardShellProps) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -107,14 +171,17 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
   const fallbackTitle =
     pathname === "/dashboard"
       ? "Overview"
-      : pathname.split("/").filter(Boolean).pop() ?? "Overview";
+      : (pathname.split("/").filter(Boolean).pop() ?? "Overview");
   const pageTitle = activeItem
     ? activeItem.label
     : fallbackTitle === "managers"
       ? "Managers"
       : fallbackTitle.charAt(0).toUpperCase() + fallbackTitle.slice(1);
 
-  const initial = (user.fullName || user.email || "U").trim().charAt(0).toUpperCase();
+  const initial = (user.fullName || user.email || "U")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   const userBlock = (
     <div className={styles.user_row}>
@@ -136,8 +203,14 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
           </Link>
         </div>
         <NavList items={items} current={pathname} />
+        <div className="back_to_home">
+          {" "}
+          <HomeLink />
+        </div>
+
         <div className={styles.sidebar_user}>
           {userBlock}
+
           <SignOutButton />
         </div>
       </aside>
@@ -148,7 +221,9 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
         onClick={() => setDrawerOpen(false)}
         aria-hidden="true"
       />
-      <aside className={`${styles.drawer} ${drawerOpen ? styles.drawer_open : ""}`}>
+      <aside
+        className={`${styles.drawer} ${drawerOpen ? styles.drawer_open : ""}`}
+      >
         <button
           type="button"
           className={styles.drawer_close}
@@ -160,9 +235,14 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
         <div className={styles.sidebar_brand}>
           <span className={styles.sidebar_logo}>TURFSKE</span>
         </div>
-        <NavList items={items} current={pathname} onNavigate={() => setDrawerOpen(false)} />
+        <NavList
+          items={items}
+          current={pathname}
+          onNavigate={() => setDrawerOpen(false)}
+        />
         <div className={styles.sidebar_user}>
           {userBlock}
+          <HomeLink onNavigate={() => setDrawerOpen(false)} />
           <SignOutButton />
         </div>
       </aside>
@@ -170,7 +250,9 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
       {/* Main column */}
       <div className={styles.main}>
         <header className={styles.topbar}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+          >
             <button
               type="button"
               className={styles.menu_button}

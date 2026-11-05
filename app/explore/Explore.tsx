@@ -99,9 +99,11 @@ const SORT_OPTIONS = [
 export default function Explore({
   venues,
   amenities,
+  venueBasePath = "/venues",
 }: {
   venues: VenueWithRelations[];
   amenities: Amenity[];
+  venueBasePath?: string;
 }) {
   const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -373,7 +375,7 @@ export default function Explore({
             {filteredTurfs.map((turf) => (
               <Link
                 key={turf.id}
-                href={`/venues/${turf.slug}`}
+                href={`${venueBasePath}/${turf.slug}`}
                 className={styles.card}
               >
                 <div className={styles.thumb}>
