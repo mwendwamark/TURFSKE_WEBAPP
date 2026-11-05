@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Minus, Plus, X } from "lucide-react";
 import Button from "@/components/ui/buttons/Button";
 import { createClient } from "@/utils/supabase/client";
@@ -158,6 +159,7 @@ export default function BookingPanel({
   seatingCapacity = null,
   spectatorFee = null,
 }: BookingPanelProps) {
+  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [today] = useState(nairobiToday);
   const [date, setDate] = useState(today);
@@ -469,9 +471,15 @@ export default function BookingPanel({
           <p>{holdError}</p>
           {phoneRequired && (
             <Button
+              type="button"
               variant="outline"
-              href="/dashboard/settings"
               arrow={false}
+              onClick={() => {
+                const next = `${window.location.pathname}${window.location.search}`;
+                router.push(
+                  `/dashboard/settings?next=${encodeURIComponent(next)}`,
+                );
+              }}
             >
               Add phone number
             </Button>

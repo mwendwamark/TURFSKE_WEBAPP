@@ -200,6 +200,47 @@
   flex-wrap: wrap;
 }
 
+.cardSide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+}
+
+.pills {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pillsStart {
+  justify-content: flex-start;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.pillPaid,
+.pillUpcoming {
+  background: #e8f5e9;
+  color: var(--primary_green);
+}
+
+.pillCompleted {
+  background: var(--light_grey);
+  color: var(--grey);
+}
+
 .codeBlock {
   min-width: 0;
 }

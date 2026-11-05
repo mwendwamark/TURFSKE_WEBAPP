@@ -24,7 +24,13 @@ function formatKes(value: number | string): string {
   return `KES ${String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 }
 
-function BookingCard({ booking }: { booking: ManagerBooking }) {
+function BookingCard({
+  booking,
+  isUpcoming,
+}: {
+  booking: ManagerBooking;
+  isUpcoming: boolean;
+}) {
   const [phone, setPhone] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -56,9 +62,21 @@ function BookingCard({ booking }: { booking: ManagerBooking }) {
           <p className={styles.cardLabel}>Booking code</p>
           <p className={styles.code}>{booking.booking_code}</p>
         </div>
-        <p className={styles.amount}>
-          You receive {formatKes(booking.manager_amount)}
-        </p>
+        <div className={styles.cardSide}>
+          <div className={styles.pills}>
+            <span className={`${styles.pill} ${styles.pillPaid}`}>Paid</span>
+            <span
+              className={`${styles.pill} ${
+                isUpcoming ? styles.pillUpcoming : styles.pillCompleted
+              }`}
+            >
+              {isUpcoming ? "Upcoming" : "Completed"}
+            </span>
+          </div>
+          <p className={styles.amount}>
+            You receive {formatKes(booking.manager_amount)}
+          </p>
+        </div>
       </div>
 
       <div className={styles.cardMain}>
@@ -143,6 +161,17 @@ function ConfirmationCard({
       </div>
 
       <p className={styles.confirmCode}>{booking.booking_code}</p>
+
+      <div className={`${styles.pills} ${styles.pillsStart}`}>
+        <span className={`${styles.pill} ${styles.pillPaid}`}>Paid</span>
+        <span
+          className={`${styles.pill} ${
+            isPast ? styles.pillCompleted : styles.pillUpcoming
+          }`}
+        >
+          {isPast ? "Completed" : "Upcoming"}
+        </span>
+      </div>
 
       <dl className={styles.confirmGrid}>
         <div className={styles.confirmItem}>
@@ -297,7 +326,11 @@ export default function BookingsClient({
           </p>
         ) : (
           bookings.map((booking) => (
-            <BookingCard key={booking.booking_id} booking={booking} />
+            <BookingCard
+              key={booking.booking_id}
+              booking={booking}
+              isUpcoming={tab === "upcoming"}
+            />
           ))
         )}
       </div>

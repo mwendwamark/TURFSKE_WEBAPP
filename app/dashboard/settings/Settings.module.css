@@ -23,6 +23,16 @@
   margin-top: -0.25rem;
 }
 
+.info {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--light_green);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--primary_green);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
 .form {
   display: flex;
   flex-direction: column;

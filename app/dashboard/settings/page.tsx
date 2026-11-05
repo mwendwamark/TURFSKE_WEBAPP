@@ -3,8 +3,15 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import SettingsForm from "./SettingsForm";
 import { formatPhoneDisplay } from "@/utils/phone";
+import { safeNextPath } from "@/utils/safe-next";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { next } = await searchParams;
+  const nextPath = safeNextPath(next);
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
@@ -44,6 +51,7 @@ export default async function SettingsPage() {
         businessName: businessName ?? "",
       }}
       isManager={role === "manager"}
+      nextPath={nextPath}
     />
   );
 }

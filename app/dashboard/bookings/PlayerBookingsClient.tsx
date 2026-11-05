@@ -16,7 +16,28 @@ function formatKes(value: number | string): string {
   return `KES ${String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 }
 
-function PlayerBookingCard({ booking }: { booking: PlayerBooking }) {
+function playerBadge(booking: PlayerBooking, isUpcoming: boolean) {
+  if (booking.refund_required) {
+    return { label: "Refund in progress", className: styles.pillRefund };
+  }
+  if (booking.status === "confirmed" && isUpcoming) {
+    return { label: "Confirmed", className: styles.pillConfirmed };
+  }
+  if (booking.status === "completed" || !isUpcoming) {
+    return { label: "Completed", className: styles.pillCompleted };
+  }
+  return null;
+}
+
+function PlayerBookingCard({
+  booking,
+  isUpcoming,
+}: {
+  booking: PlayerBooking;
+  isUpcoming: boolean;
+}) {
+  const badge = playerBadge(booking, isUpcoming);
+
   return (
     <article
       className={`${styles.card} ${booking.refund_required ? styles.cardRefund : ""}`}
@@ -36,7 +57,14 @@ function PlayerBookingCard({ booking }: { booking: PlayerBooking }) {
             {formatNairobiRange(booking.start_time, booking.end_time)}
           </p>
         </div>
-        <p className={styles.amount}>Paid {formatKes(booking.total_amount)}</p>
+        <div className={styles.cardSide}>
+          {badge && (
+            <span className={`${styles.pill} ${badge.className}`}>
+              {badge.label}
+            </span>
+          )}
+          <p className={styles.amount}>Paid {formatKes(booking.total_amount)}</p>
+        </div>
       </div>
 
       <dl className={styles.details}>
@@ -157,7 +185,11 @@ export default function PlayerBookingsClient({
           </div>
         ) : (
           bookings.map((booking) => (
-            <PlayerBookingCard key={booking.booking_id} booking={booking} />
+            <PlayerBookingCard
+              key={booking.booking_id}
+              booking={booking}
+              isUpcoming={tab === "upcoming"}
+            />
           ))
         )}
       </div>

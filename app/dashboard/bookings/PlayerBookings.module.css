@@ -81,6 +81,39 @@
   flex-wrap: wrap;
 }
 
+.cardSide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.pillConfirmed {
+  background: #e8f5e9;
+  color: var(--primary_green);
+}
+
+.pillCompleted {
+  background: var(--light_grey);
+  color: var(--grey);
+}
+
+.pillRefund {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .cardMain {
   display: flex;
   min-width: 0;

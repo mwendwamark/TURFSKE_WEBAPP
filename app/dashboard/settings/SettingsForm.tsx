@@ -14,9 +14,14 @@ type SettingsFormProps = {
     businessName: string;
   };
   isManager: boolean;
+  nextPath: string | null;
 };
 
-export default function SettingsForm({ initial, isManager }: SettingsFormProps) {
+export default function SettingsForm({
+  initial,
+  isManager,
+  nextPath,
+}: SettingsFormProps) {
   const router = useRouter();
 
   const [fullName, setFullName] = useState(initial.fullName);
@@ -51,6 +56,11 @@ export default function SettingsForm({ initial, isManager }: SettingsFormProps) 
         return;
       }
 
+      if (nextPath) {
+        router.push(nextPath);
+        return;
+      }
+
       setMessage({ type: "success", text: "Your settings were saved." });
       router.refresh();
     });
@@ -60,6 +70,12 @@ export default function SettingsForm({ initial, isManager }: SettingsFormProps) 
     <div className={styles.card}>
       <h2 className={styles.title}>Settings</h2>
       <p className={styles.sub}>Update your personal details.</p>
+
+      {nextPath && (
+        <p className={styles.info}>
+          Add your phone number to continue your booking.
+        </p>
+      )}
 
       <form className={styles.form} onSubmit={handleSubmit}>
         {isManager && (
