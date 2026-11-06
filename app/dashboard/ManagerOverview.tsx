@@ -5,14 +5,19 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  Banknote,
   Building2,
+  CalendarClock,
   CheckCircle2,
   Circle,
+  Goal,
   PlusCircle,
+  TrendingUp,
   Wallet,
 } from "lucide-react";
 import Button from "@/components/ui/buttons/Button";
 import RoleNoticeBanner from "@/components/auth/RoleNoticeBanner";
+import StatCard from "./StatCard";
 import {
   formatNairobiRange,
   nairobiDayKey,
@@ -142,60 +147,46 @@ export default function ManagerOverview({
           <Button href="/dashboard/venues">Manage venues</Button>
         </div>
 
-        <div className={styles.stat_grid}>
-          <div className={styles.stat_card}>
-            <span className={styles.stat_value}>{formatKes(earnedTotal)}</span>
-            <span className={styles.stat_label}>Total earned</span>
-            <span className={styles.stat_note}>
-              Your share after TurfsKE&apos;s commission. Paid out about two
-              working days after each payment.
-            </span>
+        <div className={styles.stat_section}>
+          <div className={styles.stat_grid}>
+            <StatCard
+              icon={Banknote}
+              label="Total earned"
+              value={formatKes(earnedTotal)}
+              featured
+            />
+            <StatCard
+              icon={TrendingUp}
+              label="This month"
+              value={formatKes(earnedThisMonth)}
+            />
+            <StatCard
+              icon={CalendarClock}
+              label="Upcoming bookings"
+              value={upcomingCount}
+            />
+            <StatCard
+              icon={Building2}
+              label={venuesCount === 1 ? "Venue" : "Venues"}
+              value={venuesCount}
+            />
+            <StatCard
+              icon={Goal}
+              label={pitchesCount === 1 ? "Pitch" : "Pitches"}
+              value={pitchesCount}
+            />
+            <StatCard
+              icon={Wallet}
+              label="Payout status"
+              value={payoutActive ? "Active" : "Not set up"}
+              dot={payoutActive ? "active" : "pending"}
+              href="/dashboard/payouts"
+            />
           </div>
-          <div className={styles.stat_card}>
-            <span className={styles.stat_value}>
-              {formatKes(earnedThisMonth)}
-            </span>
-            <span className={styles.stat_label}>This month</span>
-          </div>
-          <div className={styles.stat_card}>
-            <span className={styles.stat_value}>{upcomingCount}</span>
-            <span className={styles.stat_label}>Upcoming bookings</span>
-          </div>
-          <div className={styles.stat_card}>
-            <span className={styles.stat_value}>{todayBookings.length}</span>
-            <span className={styles.stat_label}>Today&apos;s bookings</span>
-          </div>
-
-          <div className={styles.stat_card}>
-            <span className={styles.stat_icon} aria-hidden="true">
-              <Building2 size={30} />
-            </span>
-            <span className={styles.stat_value}>{venuesCount}</span>
-            <span className={styles.stat_label}>
-              {venuesCount === 1 ? "Venue" : "Venues"}
-            </span>
-          </div>
-
-          <Link
-            href="/dashboard/payouts"
-            className={`${styles.stat_card} ${styles.stat_card_link}`}
-          >
-            <span className={styles.stat_icon} aria-hidden="true">
-              <Wallet size={40} />
-            </span>
-            <span className={styles.stat_status}>
-              <span
-                className={`${styles.status_dot} ${
-                  payoutActive
-                    ? styles.status_dot_active
-                    : styles.status_dot_pending
-                }`}
-                aria-hidden="true"
-              />
-              {payoutActive ? "Active" : "Not set up"}
-            </span>
-            <span className={styles.stat_label}>Payout status</span>
-          </Link>
+          <p className={styles.stat_footnote}>
+            Earnings are your share after TurfsKE&apos;s commission. Paid out
+            about two working days after each payment.
+          </p>
         </div>
 
         {bookingError && (
@@ -208,7 +199,7 @@ export default function ManagerOverview({
           <div className={styles.section_head}>
             <h3 className={styles.section_title}>Today&apos;s schedule</h3>
           </div>
-          <div className={styles.recent_list}>
+          <div className={styles.schedule_list}>
             {todayBookings.length === 0 ? (
               <p className={styles.empty_list}>No bookings today.</p>
             ) : (

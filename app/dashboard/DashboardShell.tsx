@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,15 +8,24 @@ import {
   X,
   LayoutDashboard,
   Building2,
-  CalendarDays,
+  CalendarCheck,
   Wallet,
   Settings,
   Users,
   Compass,
   Home,
+  Goal,
+  LifeBuoy,
+  PhoneCall,
 } from "lucide-react";
 import SignOutButton from "@/components/auth/SignOutButton";
 import styles from "./DashboardShell.module.css";
+
+// Placeholder contact address — the owner will set the real support inbox.
+const SUPPORT_HREF = "mailto:support@turfske.co.ke";
+
+const ICON_SIZE = 18;
+const ICON_STROKE = 1.75;
 
 type NavItem = {
   label: string;
@@ -29,66 +38,66 @@ const NAV: Record<string, NavItem[]> = {
     {
       label: "Overview",
       href: "/dashboard",
-      icon: <LayoutDashboard size={18} />,
+      icon: <LayoutDashboard size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
     {
-      label: "My Venues",
+      label: "My venues",
       href: "/dashboard/venues",
-      icon: <Building2 size={18} />,
+      icon: <Building2 size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
     {
       label: "Bookings",
       href: "/dashboard/bookings",
-      icon: <CalendarDays size={18} />,
+      icon: <CalendarCheck size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
     {
       label: "Payouts",
       href: "/dashboard/payouts",
-      icon: <Wallet size={18} />,
+      icon: <Wallet size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
     {
       label: "Settings",
       href: "/dashboard/settings",
-      icon: <Settings size={18} />,
+      icon: <Settings size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
   ],
   player: [
     {
       label: "Overview",
       href: "/dashboard",
-      icon: <LayoutDashboard size={18} />,
+      icon: <LayoutDashboard size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
     {
-      label: "Find a Pitch",
+      label: "Find a pitch",
       href: "/dashboard/explore",
-      icon: <Compass size={18} />,
+      icon: <Compass size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
     {
-      label: "My Bookings",
+      label: "My bookings",
       href: "/dashboard/bookings",
-      icon: <CalendarDays size={18} />,
+      icon: <CalendarCheck size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
     {
       label: "Settings",
       href: "/dashboard/settings",
-      icon: <Settings size={18} />,
+      icon: <Settings size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
   ],
   admin: [
     {
       label: "Overview",
       href: "/dashboard",
-      icon: <LayoutDashboard size={18} />,
+      icon: <LayoutDashboard size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
     {
       label: "Managers",
       href: "/dashboard/admin/managers",
-      icon: <Users size={18} />,
+      icon: <Users size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
     {
       label: "Settings",
       href: "/dashboard/settings",
-      icon: <Settings size={18} />,
+      icon: <Settings size={ICON_SIZE} strokeWidth={ICON_STROKE} />,
     },
   ],
 };
@@ -98,13 +107,13 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function HomeLink({ onNavigate }: { onNavigate?: () => void }) {
+function Brand({ onNavigate }: { onNavigate?: () => void }) {
   return (
-    <Link href="/" className={styles.nav_item} onClick={onNavigate}>
-      <span className={styles.nav_icon} aria-hidden="true">
-        <Home size={18} />
+    <Link href="/" className={styles.brand} onClick={onNavigate}>
+      <span className={styles.brand_tile} aria-hidden="true">
+        <Goal size={ICON_SIZE} strokeWidth={ICON_STROKE} />
       </span>
-      Back to home
+      <span className={styles.brand_name}>TurfsKE</span>
     </Link>
   );
 }
@@ -122,28 +131,77 @@ function NavList({
     <nav className={styles.nav} aria-label="Dashboard">
       {items.map((item) => {
         const active = isActive(current, item.href);
-        const content = (
-          <>
-            <span className={styles.nav_icon} aria-hidden="true">
-              {item.icon}
-            </span>
-            {item.label}
-          </>
-        );
 
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`${styles.nav_item} ${active ? styles.nav_item_active : ""}`}
-            onClick={onNavigate}
-            aria-current={active ? "page" : undefined}
-          >
-            {content}
-          </Link>
+          <Fragment key={item.href}>
+            {item.href === "/dashboard/settings" && (
+              <div className={styles.nav_divider} aria-hidden="true" />
+            )}
+            <Link
+              href={item.href}
+              className={`${styles.nav_item} ${active ? styles.nav_item_active : ""}`}
+              onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
+            >
+              <span className={styles.nav_icon} aria-hidden="true">
+                {item.icon}
+              </span>
+              {item.label}
+            </Link>
+          </Fragment>
         );
       })}
     </nav>
+  );
+}
+
+function HelpCard({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <div className={styles.help_card}>
+      <Link href="/" className={styles.help_row} onClick={onNavigate}>
+        <span className={styles.help_icon} aria-hidden="true">
+          <Home size={ICON_SIZE} strokeWidth={ICON_STROKE} />
+        </span>
+        Back to home
+      </Link>
+      <div className={styles.help_divider} aria-hidden="true" />
+      <Link href={SUPPORT_HREF} className={styles.help_row} onClick={onNavigate}>
+        <span className={styles.help_icon} aria-hidden="true">
+          <PhoneCall size={ICON_SIZE} strokeWidth={ICON_STROKE} />
+        </span>
+        Contact support
+      </Link>
+    </div>
+  );
+}
+
+function UserCard({
+  fullName,
+  email,
+  roleLabel,
+  initial,
+}: {
+  fullName: string;
+  email: string;
+  roleLabel: string;
+  initial: string;
+}) {
+  return (
+    <div className={styles.user_card}>
+      <div className={styles.user_row}>
+        <span className={styles.user_avatar} aria-hidden="true">
+          {initial}
+        </span>
+        <div className={styles.user_info}>
+          <div className={styles.user_name_row}>
+            <p className={styles.user_name}>{fullName}</p>
+            <span className={styles.user_role}>{roleLabel}</span>
+          </div>
+          <p className={styles.user_email}>{email}</p>
+        </div>
+      </div>
+      <SignOutButton />
+    </div>
   );
 }
 
@@ -183,35 +241,29 @@ export default function DashboardShell({
     .charAt(0)
     .toUpperCase();
 
-  const userBlock = (
-    <div className={styles.user_row}>
-      <span className={styles.user_avatar}>{initial}</span>
-      <div className={styles.user_info}>
-        <p className={styles.user_name}>{user.fullName}</p>
-        <p className={styles.user_email}>{user.email}</p>
-      </div>
-    </div>
-  );
+  const roleLabel =
+    user.role === "manager"
+      ? "Manager"
+      : user.role === "admin"
+        ? "Admin"
+        : "Player";
 
   return (
     <div className={styles.shell}>
       {/* Desktop sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebar_brand}>
-          <Link href="/" className={styles.sidebar_logo_link}>
-            <span className={styles.sidebar_logo}>TURFSKE</span>
-          </Link>
+          <Brand />
         </div>
         <NavList items={items} current={pathname} />
-        <div className={styles.back_to_home}>
-          {" "}
-          <HomeLink />
-        </div>
-
-        <div className={styles.sidebar_user}>
-          {userBlock}
-
-          <SignOutButton />
+        <div className={styles.sidebar_footer}>
+          <HelpCard />
+          <UserCard
+            fullName={user.fullName}
+            email={user.email}
+            roleLabel={roleLabel}
+            initial={initial}
+          />
         </div>
       </aside>
 
@@ -230,38 +282,40 @@ export default function DashboardShell({
           onClick={() => setDrawerOpen(false)}
           aria-label="Close menu"
         >
-          <X size={22} />
+          <X size={20} strokeWidth={ICON_STROKE} />
         </button>
         <div className={styles.sidebar_brand}>
-          <span className={styles.sidebar_logo}>TURFSKE</span>
+          <Brand onNavigate={() => setDrawerOpen(false)} />
         </div>
         <NavList
           items={items}
           current={pathname}
           onNavigate={() => setDrawerOpen(false)}
         />
-        <div className={styles.sidebar_user}>
-          {userBlock}
-          <HomeLink onNavigate={() => setDrawerOpen(false)} />
-          <SignOutButton />
+        <div className={styles.sidebar_footer}>
+          <HelpCard onNavigate={() => setDrawerOpen(false)} />
+          <UserCard
+            fullName={user.fullName}
+            email={user.email}
+            roleLabel={roleLabel}
+            initial={initial}
+          />
         </div>
       </aside>
 
       {/* Main column */}
       <div className={styles.main}>
         <header className={styles.topbar}>
-          <div
-            style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
-          >
+          <div className={styles.topbar_left}>
             <button
               type="button"
               className={styles.menu_button}
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
             >
-              <Menu size={20} />
+              <Menu size={20} strokeWidth={ICON_STROKE} />
             </button>
-            <span className={styles.topbar_brand}>TURFSKE</span>
+            <span className={styles.topbar_brand}>TurfsKE</span>
             <h1 className={styles.topbar_title}>{pageTitle}</h1>
           </div>
           <div className={styles.topbar_user}>

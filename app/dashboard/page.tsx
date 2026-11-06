@@ -1,9 +1,18 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import {
+  Building2,
+  CalendarClock,
+  Ticket,
+  User,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import Button from "@/components/ui/buttons/Button";
 import RoleNoticeBanner from "@/components/auth/RoleNoticeBanner";
 import ManagerOverview from "./ManagerOverview";
+import StatCard from "./StatCard";
 import type { Amenity, PayoutStatus, VenueWithRelations } from "./types";
 import type { ManagerBooking } from "./bookings/types";
 import type { PlayerBooking } from "./bookings/player-types";
@@ -133,18 +142,22 @@ export default async function OverviewPage({
         </div>
 
         <div className={styles.stat_grid}>
-          <div className={styles.stat_card}>
-            <span className={styles.stat_value}>{managersRes.count ?? 0}</span>
-            <span className={styles.stat_label}>Turf managers</span>
-          </div>
-          <div className={styles.stat_card}>
-            <span className={styles.stat_value}>{playersRes.count ?? 0}</span>
-            <span className={styles.stat_label}>Players</span>
-          </div>
-          <div className={styles.stat_card}>
-            <span className={styles.stat_value}>{venuesRes.count ?? 0}</span>
-            <span className={styles.stat_label}>Venues listed</span>
-          </div>
+          <StatCard
+            icon={Users}
+            label="Turf managers"
+            value={managersRes.count ?? 0}
+            featured
+          />
+          <StatCard
+            icon={User}
+            label="Players"
+            value={playersRes.count ?? 0}
+          />
+          <StatCard
+            icon={Building2}
+            label="Venues listed"
+            value={venuesRes.count ?? 0}
+          />
         </div>
       </div>
     );
@@ -210,25 +223,27 @@ export default async function OverviewPage({
       )}
 
       <div className={styles.stat_grid}>
-        <div className={styles.stat_card}>
-          <span className={styles.stat_value}>{upcomingBookings.length}</span>
-          <span className={styles.stat_label}>Upcoming</span>
-        </div>
-        <div className={styles.stat_card}>
-          <span className={styles.stat_value}>{paidBookings.length}</span>
-          <span className={styles.stat_label}>Games booked</span>
-        </div>
-        <div className={styles.stat_card}>
-          <span className={styles.stat_value}>
-            {formatKes(
-              paidBookings.reduce(
-                (sum, booking) => sum + Number(booking.total_amount || 0),
-                0,
-              ),
-            )}
-          </span>
-          <span className={styles.stat_label}>Total spent</span>
-        </div>
+        <StatCard
+          icon={CalendarClock}
+          label="Upcoming"
+          value={upcomingBookings.length}
+          featured
+        />
+        <StatCard
+          icon={Ticket}
+          label="Games booked"
+          value={paidBookings.length}
+        />
+        <StatCard
+          icon={Wallet}
+          label="Total spent"
+          value={formatKes(
+            paidBookings.reduce(
+              (sum, booking) => sum + Number(booking.total_amount || 0),
+              0,
+            ),
+          )}
+        />
       </div>
 
       <section className={styles.feature_section}>
