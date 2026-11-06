@@ -20,6 +20,18 @@ function toNairobiDate(iso: string): Date {
   return new Date(new Date(iso).getTime() + NAIROBI_OFFSET_MS);
 }
 
+export function nairobiDayKey(iso: string): string {
+  const date = toNairobiDate(iso);
+  if (!Number.isFinite(date.getTime())) return "";
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+}
+
+export function nairobiMonthKey(iso: string): string {
+  const date = toNairobiDate(iso);
+  if (!Number.isFinite(date.getTime())) return "";
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}`;
+}
+
 function pad(value: number): string {
   return String(value).padStart(2, "0");
 }

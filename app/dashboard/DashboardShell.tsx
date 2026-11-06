@@ -203,7 +203,7 @@ export default function DashboardShell({
           </Link>
         </div>
         <NavList items={items} current={pathname} />
-        <div className="back_to_home">
+        <div className={styles.back_to_home}>
           {" "}
           <HomeLink />
         </div>

@@ -5,6 +5,7 @@ import { CheckCircle2 } from "lucide-react";
 import Button from "@/components/ui/buttons/Button";
 import { formatPhoneDisplay } from "@/utils/phone";
 import { formatNairobiRange } from "@/utils/datetime";
+import { formatKes } from "@/utils/money";
 import { checkBookingCodeAction, revealPlayerPhoneAction } from "./actions";
 import type {
   CheckBookingCodeResult,
@@ -17,12 +18,6 @@ type Tab = "upcoming" | "past";
 const NOT_FOUND_MESSAGE =
   "No paid booking with this code at your venues.";
 const GENERIC_ERROR = "Something went wrong. Please try again.";
-
-function formatKes(value: number | string): string {
-  const whole = Math.round(Number(value));
-  if (!Number.isFinite(whole)) return "KES 0";
-  return `KES ${String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-}
 
 function BookingCard({
   booking,

@@ -242,6 +242,17 @@
   margin: 0 auto;
 }
 
+.back_to_home{
+  display: flex;
+  padding: 0.7rem 0.9rem;
+  height: 100px;
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem
+}
+
 /* ── Mobile drawer ── */
 .drawer_overlay {
   display: none;

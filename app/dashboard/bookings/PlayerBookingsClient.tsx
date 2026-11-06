@@ -4,17 +4,12 @@ import Link from "next/link";
 import { useState } from "react";
 import Button from "@/components/ui/buttons/Button";
 import { formatNairobiRange } from "@/utils/datetime";
+import { formatKes } from "@/utils/money";
 import { formatPhoneDisplay } from "@/utils/phone";
 import type { PlayerBooking } from "./player-types";
 import styles from "./PlayerBookings.module.css";
 
 type Tab = "upcoming" | "past";
-
-function formatKes(value: number | string): string {
-  const whole = Math.round(Number(value));
-  if (!Number.isFinite(whole)) return "KES 0";
-  return `KES ${String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-}
 
 function playerBadge(booking: PlayerBooking, isUpcoming: boolean) {
   if (booking.refund_required) {

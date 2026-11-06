@@ -8,15 +8,21 @@ import {
   Building2,
   CheckCircle2,
   Circle,
-  LayoutGrid,
   PlusCircle,
   Wallet,
 } from "lucide-react";
 import Button from "@/components/ui/buttons/Button";
 import RoleNoticeBanner from "@/components/auth/RoleNoticeBanner";
+import {
+  formatNairobiRange,
+  nairobiDayKey,
+  nairobiMonthKey,
+} from "@/utils/datetime";
+import { formatKes } from "@/utils/money";
 import VenueForm from "./VenueForm";
 import PitchForm from "./PitchForm";
 import type { Amenity, Pitch, PayoutStatus, VenueWithRelations } from "./types";
+import type { ManagerBooking } from "./bookings/types";
 import styles from "./Overview.module.css";
 import { TbPlayFootball } from "react-icons/tb";
 import { FaArrowRightLong } from "react-icons/fa6";
@@ -32,6 +38,11 @@ type ManagerOverviewProps = {
   payout: PayoutStatus;
   fullName: string;
   roleNotice?: string;
+  bookings: ManagerBooking[];
+  bookingError: boolean;
+  nowMs: number;
+  todayKey: string;
+  thisMonthKey: string;
 };
 
 export default function ManagerOverview({
@@ -40,6 +51,11 @@ export default function ManagerOverview({
   payout,
   fullName,
   roleNotice,
+  bookings,
+  bookingError,
+  nowMs,
+  todayKey,
+  thisMonthKey,
 }: ManagerOverviewProps) {
   const router = useRouter();
   const [modal, setModal] = useState<ModalState>(null);
@@ -50,6 +66,33 @@ export default function ManagerOverview({
     0,
   );
   const payoutActive = payout.paystackSubaccountCode != null;
+
+  const earnedTotal = bookings.reduce(
+    (sum, booking) => sum + (Number(booking.manager_amount) || 0),
+    0,
+  );
+  const earnedThisMonth = bookings.reduce(
+    (sum, booking) =>
+      booking.paid_at && nairobiMonthKey(booking.paid_at) === thisMonthKey
+        ? sum + (Number(booking.manager_amount) || 0)
+        : sum,
+    0,
+  );
+  const upcomingCount = bookings.filter(
+    (booking) => new Date(booking.end_time).getTime() > nowMs,
+  ).length;
+  const todayBookings = bookings
+    .filter((booking) => nairobiDayKey(booking.start_time) === todayKey)
+    .sort(
+      (a, b) =>
+        new Date(a.start_time).getTime() - new Date(b.start_time).getTime(),
+    );
+  const recentBookings = [...bookings]
+    .sort(
+      (a, b) =>
+        new Date(b.paid_at ?? 0).getTime() - new Date(a.paid_at ?? 0).getTime(),
+    )
+    .slice(0, 5);
 
   const checklistItems = [
     { label: "Create your account", done: true },
@@ -99,30 +142,37 @@ export default function ManagerOverview({
           <Button href="/dashboard/venues">Manage venues</Button>
         </div>
 
-        {/* Stat row */}
-        <div className={styles.stat_row}>
-          <div className={styles.stat_card_accent}>
-            <span className={styles.stat_icon_accent} aria-hidden="true">
-              <Building2 size={40} />
+        <div className={styles.stat_grid}>
+          <div className={styles.stat_card}>
+            <span className={styles.stat_value}>{formatKes(earnedTotal)}</span>
+            <span className={styles.stat_label}>Total earned</span>
+            <span className={styles.stat_note}>
+              Your share after TurfsKE&apos;s commission. Paid out about two
+              working days after each payment.
             </span>
-            <span className={styles.stat_value_accent}>{venuesCount}</span>
-            <span className={styles.stat_label_accent}>
-              {venuesCount === 1 ? "Venue" : "Venues"}
+          </div>
+          <div className={styles.stat_card}>
+            <span className={styles.stat_value}>
+              {formatKes(earnedThisMonth)}
             </span>
-            <Building2
-              className={styles.deco_icon}
-              size={96}
-              aria-hidden="true"
-            />
+            <span className={styles.stat_label}>This month</span>
+          </div>
+          <div className={styles.stat_card}>
+            <span className={styles.stat_value}>{upcomingCount}</span>
+            <span className={styles.stat_label}>Upcoming bookings</span>
+          </div>
+          <div className={styles.stat_card}>
+            <span className={styles.stat_value}>{todayBookings.length}</span>
+            <span className={styles.stat_label}>Today&apos;s bookings</span>
           </div>
 
           <div className={styles.stat_card}>
             <span className={styles.stat_icon} aria-hidden="true">
-              <LayoutGrid size={40} />
+              <Building2 size={30} />
             </span>
-            <span className={styles.stat_value}>{pitchesCount}</span>
+            <span className={styles.stat_value}>{venuesCount}</span>
             <span className={styles.stat_label}>
-              {pitchesCount === 1 ? "Pitch" : "Pitches"}
+              {venuesCount === 1 ? "Venue" : "Venues"}
             </span>
           </div>
 
@@ -148,56 +198,129 @@ export default function ManagerOverview({
           </Link>
         </div>
 
+        {bookingError && (
+          <p className={styles.error_notice} role="status">
+            We couldn&apos;t load your booking summary. Please try again.
+          </p>
+        )}
+
+        <section className={styles.booking_section}>
+          <div className={styles.section_head}>
+            <h3 className={styles.section_title}>Today&apos;s schedule</h3>
+          </div>
+          <div className={styles.recent_list}>
+            {todayBookings.length === 0 ? (
+              <p className={styles.empty_list}>No bookings today.</p>
+            ) : (
+              todayBookings.map((booking) => (
+                <div key={booking.booking_id} className={styles.booking_row}>
+                  <p className={styles.schedule_time}>
+                    {formatNairobiRange(booking.start_time, booking.end_time)}
+                  </p>
+                  <div className={styles.booking_info}>
+                    <p className={styles.booking_title}>{booking.pitch_name}</p>
+                    <p className={styles.booking_detail}>
+                      {booking.venue_name} · {booking.player_name ?? "Player"}
+                    </p>
+                  </div>
+                  <span className={styles.booking_code}>
+                    {booking.booking_code}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <section className={styles.booking_section}>
+          <div className={styles.section_head}>
+            <h3 className={styles.section_title}>Recent bookings</h3>
+            <Button href="/dashboard/bookings" variant="outline" arrow={false}>
+              View all
+            </Button>
+          </div>
+          <div className={styles.recent_list}>
+            {recentBookings.length === 0 ? (
+              <p className={styles.empty_list}>No bookings yet.</p>
+            ) : (
+              recentBookings.map((booking) => (
+                <div key={booking.booking_id} className={styles.booking_row}>
+                  <div className={styles.booking_info}>
+                    <p className={styles.booking_title}>{booking.venue_name}</p>
+                    <p className={styles.booking_detail}>
+                      {booking.pitch_name} ·{" "}
+                      {formatNairobiRange(booking.start_time, booking.end_time)}
+                    </p>
+                    <p className={styles.booking_detail}>
+                      {booking.player_name ?? "Player"}
+                    </p>
+                  </div>
+                  <span className={styles.booking_code}>
+                    {booking.booking_code}
+                  </span>
+                  <span className={styles.booking_amount}>
+                    {formatKes(booking.manager_amount)}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
         {/* Quick actions */}
-        <div className={styles.section_head}>
-          <h3 className={styles.section_title}>Quick actions</h3>
-        </div>
-        <div className={styles.quick_actions}>
-          <button
-            type="button"
-            className={styles.quick_action}
-            onClick={() => setModal({ type: "venue", venue: null })}
-          >
-            <span className={styles.quick_icon} aria-hidden="true">
-              <Building2 size={40} />
-            </span>
-            <span className={styles.quick_text}>
-              <span className={styles.quick_title}>Add a venue</span>
-              <span className={styles.quick_sub}>
-                List your turf so players can find it
-              </span>
-            </span>
-          </button>
 
-          <button
-            type="button"
-            className={styles.quick_action}
-            onClick={openAddPitch}
-            disabled={venues.length === 0}
-            title={venues.length === 0 ? "Add a venue first" : undefined}
-          >
-            <span className={styles.quick_icon} aria-hidden="true">
-              <PlusCircle size={40} />
-            </span>
-            <span className={styles.quick_text}>
-              <span className={styles.quick_title}>Add a pitch</span>
-              <span className={styles.quick_sub}>{pitchQuickSub}</span>
-            </span>
-          </button>
-
-          {!payoutActive && (
-            <Link href="/dashboard/payouts" className={styles.quick_action}>
+        <div>
+          {" "}
+          <div className={styles.section_head}>
+            <h3 className={styles.section_title}>Quick actions</h3>
+          </div>
+          <div className={styles.quick_actions}>
+            <button
+              type="button"
+              className={styles.quick_action}
+              onClick={() => setModal({ type: "venue", venue: null })}
+            >
               <span className={styles.quick_icon} aria-hidden="true">
-                <Wallet size={18} />
+                <Building2 size={40} />
               </span>
               <span className={styles.quick_text}>
-                <span className={styles.quick_title}>Set up payouts</span>
+                <span className={styles.quick_title}>Add a venue</span>
                 <span className={styles.quick_sub}>
-                  Receive money from player bookings
+                  List your turf so players can find it
                 </span>
               </span>
-            </Link>
-          )}
+            </button>
+
+            <button
+              type="button"
+              className={styles.quick_action}
+              onClick={openAddPitch}
+              disabled={venues.length === 0}
+              title={venues.length === 0 ? "Add a venue first" : undefined}
+            >
+              <span className={styles.quick_icon} aria-hidden="true">
+                <PlusCircle size={40} />
+              </span>
+              <span className={styles.quick_text}>
+                <span className={styles.quick_title}>Add a pitch</span>
+                <span className={styles.quick_sub}>{pitchQuickSub}</span>
+              </span>
+            </button>
+
+            {!payoutActive && (
+              <Link href="/dashboard/payouts" className={styles.quick_action}>
+                <span className={styles.quick_icon} aria-hidden="true">
+                  <Wallet size={18} />
+                </span>
+                <span className={styles.quick_text}>
+                  <span className={styles.quick_title}>Set up payouts</span>
+                  <span className={styles.quick_sub}>
+                    Receive money from player bookings
+                  </span>
+                </span>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Getting-started checklist + recent venues */}

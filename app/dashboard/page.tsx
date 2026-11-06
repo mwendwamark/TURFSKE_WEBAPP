@@ -5,6 +5,15 @@ import Button from "@/components/ui/buttons/Button";
 import RoleNoticeBanner from "@/components/auth/RoleNoticeBanner";
 import ManagerOverview from "./ManagerOverview";
 import type { Amenity, PayoutStatus, VenueWithRelations } from "./types";
+import type { ManagerBooking } from "./bookings/types";
+import type { PlayerBooking } from "./bookings/player-types";
+import {
+  currentTimeMs,
+  formatNairobiRange,
+  nairobiDayKey,
+  nairobiMonthKey,
+} from "@/utils/datetime";
+import { formatKes } from "@/utils/money";
 import styles from "./Overview.module.css";
 
 export default async function OverviewPage({
@@ -37,7 +46,22 @@ export default async function OverviewPage({
 
   // ── Manager overview ──
   if (role === "manager") {
-    const [venueResult, amenitiesResult, managerProfileResult] = await Promise.all([
+    const overviewNow = currentTimeMs();
+    const overviewNowIso = new Date(overviewNow).toISOString();
+    const managerBookingsPromise = (async () => {
+      try {
+        return await supabase.rpc("manager_list_bookings");
+      } catch (error: unknown) {
+        console.error("manager_list_bookings failed:", error);
+        return null;
+      }
+    })();
+    const [
+      venueResult,
+      amenitiesResult,
+      managerProfileResult,
+      managerBookingsResult,
+    ] = await Promise.all([
       supabase
         .from("venues")
         .select(
@@ -51,10 +75,18 @@ export default async function OverviewPage({
         .select("business_name, paystack_subaccount_code, verified")
         .eq("user_id", user.id)
         .maybeSingle(),
+      managerBookingsPromise,
     ]);
+
+    if (managerBookingsResult?.error) {
+      console.error("manager_list_bookings failed:", managerBookingsResult.error);
+    }
 
     const venues = (venueResult.data ?? []) as VenueWithRelations[];
     const amenities = (amenitiesResult.data ?? []) as Amenity[];
+    const managerBookings = Array.isArray(managerBookingsResult?.data)
+      ? (managerBookingsResult.data as ManagerBooking[])
+      : [];
     const payout: PayoutStatus = {
       businessName: managerProfileResult.data?.business_name ?? null,
       paystackSubaccountCode: managerProfileResult.data?.paystack_subaccount_code ?? null,
@@ -68,6 +100,11 @@ export default async function OverviewPage({
         payout={payout}
         fullName={fullName}
         roleNotice={roleNotice}
+        bookings={managerBookingsResult?.error ? [] : managerBookings}
+        bookingError={!managerBookingsResult || Boolean(managerBookingsResult.error)}
+        nowMs={overviewNow}
+        todayKey={nairobiDayKey(overviewNowIso)}
+        thisMonthKey={nairobiMonthKey(overviewNowIso)}
       />
     );
   }
@@ -114,6 +151,41 @@ export default async function OverviewPage({
   }
 
   // ── Player overview ──
+  let playerBookingsData: PlayerBooking[] = [];
+  let playerBookingsError = false;
+
+  try {
+    const { data, error } = await supabase.rpc("player_list_bookings");
+    if (error) {
+      console.error("player_list_bookings failed:", error);
+      playerBookingsError = true;
+    } else if (Array.isArray(data)) {
+      playerBookingsData = data as PlayerBooking[];
+    }
+  } catch (error: unknown) {
+    console.error("player_list_bookings failed:", error);
+    playerBookingsError = true;
+  }
+
+  const playerBookings = playerBookingsData;
+  const paidBookings = playerBookings.filter(
+    (booking) => !booking.refund_required,
+  );
+  const now = currentTimeMs();
+  const upcomingBookings = paidBookings
+    .filter((booking) => new Date(booking.end_time).getTime() > now)
+    .sort(
+      (a, b) =>
+        new Date(a.start_time).getTime() - new Date(b.start_time).getTime(),
+    );
+  const nextGame = upcomingBookings[0];
+  const recentBookings = [...paidBookings]
+    .sort(
+      (a, b) =>
+        new Date(b.start_time).getTime() - new Date(a.start_time).getTime(),
+    )
+    .slice(0, 3);
+
   return (
     <div className={styles.overview}>
       {roleNotice && <RoleNoticeBanner notice={roleNotice} />}
@@ -130,6 +202,117 @@ export default async function OverviewPage({
           </Button>
         </div>
       </div>
+
+      {playerBookingsError && (
+        <p className={styles.error_notice} role="status">
+          We couldn&apos;t load your booking summary. Please try again.
+        </p>
+      )}
+
+      <div className={styles.stat_grid}>
+        <div className={styles.stat_card}>
+          <span className={styles.stat_value}>{upcomingBookings.length}</span>
+          <span className={styles.stat_label}>Upcoming</span>
+        </div>
+        <div className={styles.stat_card}>
+          <span className={styles.stat_value}>{paidBookings.length}</span>
+          <span className={styles.stat_label}>Games booked</span>
+        </div>
+        <div className={styles.stat_card}>
+          <span className={styles.stat_value}>
+            {formatKes(
+              paidBookings.reduce(
+                (sum, booking) => sum + Number(booking.total_amount || 0),
+                0,
+              ),
+            )}
+          </span>
+          <span className={styles.stat_label}>Total spent</span>
+        </div>
+      </div>
+
+      <section className={styles.feature_section}>
+        <div className={styles.section_head}>
+          <h3 className={styles.section_title}>Next game</h3>
+        </div>
+        {nextGame ? (
+          <div className={styles.feature_card}>
+            <div className={styles.booking_info}>
+              <p className={styles.booking_title}>{nextGame.venue_name}</p>
+              <p className={styles.booking_detail}>{nextGame.pitch_name}</p>
+              <p className={styles.booking_detail}>
+                {formatNairobiRange(nextGame.start_time, nextGame.end_time)}
+              </p>
+              <p className={styles.booking_code}>{nextGame.booking_code}</p>
+            </div>
+            <div className={styles.booking_actions}>
+              {nextGame.manager_phone && (
+                <Button
+                  href={`tel:${nextGame.manager_phone}`}
+                  variant="outline"
+                  arrow={false}
+                >
+                  Call venue
+                </Button>
+              )}
+              {nextGame.paid_reference && (
+                <Button
+                  href={`/payment/receipt?reference=${encodeURIComponent(nextGame.paid_reference)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="outline"
+                  arrow={false}
+                >
+                  View receipt
+                </Button>
+              )}
+              <Button
+                href={`/dashboard/explore/${nextGame.venue_slug}`}
+                variant="primary"
+                arrow={false}
+              >
+                Open venue
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.feature_card}>
+            <p className={styles.empty_list}>No upcoming games yet.</p>
+            <Button href="/dashboard/explore" variant="primary" arrow={false}>
+              Find a pitch
+            </Button>
+          </div>
+        )}
+      </section>
+
+      <section className={styles.recent_block}>
+        <div className={styles.section_head}>
+          <h3 className={styles.section_title}>Recent bookings</h3>
+          <Button href="/dashboard/bookings" variant="outline" arrow={false}>
+            View all
+          </Button>
+        </div>
+        <div className={styles.recent_list}>
+          {recentBookings.length === 0 ? (
+            <p className={styles.empty_list}>No bookings yet.</p>
+          ) : (
+            recentBookings.map((booking) => (
+              <div key={booking.booking_id} className={styles.booking_row}>
+                <div className={styles.booking_info}>
+                  <p className={styles.booking_title}>{booking.venue_name}</p>
+                  <p className={styles.booking_detail}>
+                    {booking.pitch_name} ·{" "}
+                    {formatNairobiRange(booking.start_time, booking.end_time)}
+                  </p>
+                </div>
+                <span className={styles.booking_amount}>
+                  {formatKes(booking.total_amount)}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
     </div>
   );
 }
